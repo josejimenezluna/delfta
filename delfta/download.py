@@ -6,9 +6,9 @@ import requests
 import torch
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH
+from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
 
-DATASET_PATH = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
+DATASETS = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
 
 DATASET_REMOTE = {
     "qmugs": "polybox.ethz.ch/...",
@@ -27,26 +27,28 @@ MODELS_REMOTE = {
     "charges": "polybox.ethz.ch/...",
 }
 
+XTB_REMOTE = "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
 
 
-def download(name=""):
-    # Return True upon successful download, False otherwise
-    # 
-    # requests.get(...)
-    pass
+def download(src, dest):
+    r = requests.get(src, stream=True)
+    with open(dest, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size=256):
+            fd.write(chunk)
+        return True
 
 
 def get_dataset(name="qmugs"):
-    if name not in DATASET_PATH:
+    if name not in DATASETS:
         raise ValueError("Dataset not supported")
     else:
         downloaded_flag = True
-        if not os.path.exists(DATASET_PATH[name]):
+        if not os.path.exists(DATASETS[name]):
             os.makedirs(DATA_PATH, exist_ok=True)
             downloaded_flag = download(name)
 
         if downloaded_flag:
-            h5 = h5py.File(DATASET_PATH[name], "r")
+            h5 = h5py.File(DATASETS[name], "r")
             return h5
         else:
             raise ValueError("Failed at downloading dataset!")
@@ -66,3 +68,15 @@ def get_model_weights(name="multitask"):
             return weights
         else:
             raise ValueError("Failed at downloading model!")
+
+
+if __name__ == "__main__":
+    os.makedirs(MODEL_PATH, exist_ok=True)
+    for model_name, model_path in MODELS:
+        download(MODELS_REMOTE[model_name], model_path)
+
+    os.makedirs(DATA_PATH, exist_ok=True)
+    for data_name, data_path in DATASETS:
+        download(DATASET_REMOTE[model_name], data_path)
+
+    download(XTB_REMOTE, XTB_PATH)
