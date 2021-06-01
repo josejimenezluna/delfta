@@ -1,5 +1,6 @@
 ## Scripts to download training h5 files and trained models from polybox or other service.
 import os
+import tarfile
 
 import h5py
 import requests
@@ -79,4 +80,7 @@ if __name__ == "__main__":
     for data_name, data_path in DATASETS:
         download(DATASET_REMOTE[model_name], data_path)
 
-    download(XTB_REMOTE, XTB_PATH)
+    download(XTB_REMOTE, os.path.join(XTB_PATH, "xtb.tar.xz"))
+
+    with tarfile.open(os.path.join(XTB_PATH, "xtb.tar.xz")) as handle:
+        handle.extractall(XTB_PATH)
