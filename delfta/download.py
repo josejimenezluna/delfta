@@ -33,9 +33,9 @@ XTB_REMOTE = "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200
 
 def download(src, dest):
     r = requests.get(src, stream=True)
-    with open(dest, 'wb') as fd:
+    with open(dest, 'wb') as handle:
         for chunk in r.iter_content(chunk_size=256):
-            fd.write(chunk)
+            handle.write(chunk)
         return True
 
 

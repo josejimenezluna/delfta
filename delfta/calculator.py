@@ -9,6 +9,9 @@ class DelftaCalculator:
         self.accurate_energy = accurate_energy
         self.models = []
 
+        if self.accurate_energy:
+            self.models.append("single_energy")
+
         for task in tasks:
             if task in MULTITASK_ENDPOINTS:
                 self.models.append("multitask")
@@ -16,8 +19,6 @@ class DelftaCalculator:
             if task == "charges":
                 self.models.append("charges")
 
-            if self.accurate_energy:
-                self.models.append("single_energy")
 
         if self.models:
             all_models = [MULTITASK_ENDPOINTS] + ["charges", "single_energy"]
