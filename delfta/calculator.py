@@ -43,6 +43,8 @@ class DelftaCalculator:
     def predict(self, mols, batch_size=32):
         xtb_props = []
 
+        mols = self._preprocess(mols)
+
         # Data featurization code for the network goes here
         # data = DeltaData(mols)
         # loader = DataLoader(data, batch_size=batch_size)
