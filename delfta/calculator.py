@@ -1,6 +1,5 @@
 ## classes and functions for the main predictive capabilities
 import numpy as np
-from torch._C import dtype
 from delfta.net_utils import MULTITASK_ENDPOINTS
 from delfta.download import MODELS, get_model_weights
 from delfta.xtb import get_xtb_props
