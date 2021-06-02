@@ -5,7 +5,7 @@ with open('delfta/__version__.py') as fp:
     exec(fp.read(), version)
 
     
-setup(name='pyGPGO',
+setup(name='delfta',
     version=version['__version__'],
     description='delfta',
     classifiers=[
