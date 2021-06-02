@@ -6,10 +6,9 @@ from delfta.download import MODELS
 class DelftaCalculator:
     def __init__(self, tasks, accurate_energy=False) -> None:
         self.tasks = tasks
-        self.accurate_energy = accurate_energy
         self.models = []
 
-        if self.accurate_energy:
+        if accurate_energy:
             self.models.append("single_energy")
 
         for task in tasks:
@@ -18,7 +17,6 @@ class DelftaCalculator:
 
             if task == "charges":
                 self.models.append("charges")
-
 
         if self.models:
             all_models = [MULTITASK_ENDPOINTS] + ["charges", "single_energy"]
