@@ -3,6 +3,7 @@ channels:
   - rdkit
   - pytorch
   - defaults
+  - conda-forge
 dependencies:
   - joblib=1.0.1
   - matplotlib=3.3.2
@@ -19,7 +20,8 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
-  - cudatoolkit=10.2
+  #- cudatoolkit=10.2
+  - openbabel=3.1.1
   - pip:
     - ase==3.21.1
     - einops==0.3.0
