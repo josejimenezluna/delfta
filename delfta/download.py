@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, TESTS_PATH
+from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
 
 DATASETS = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
 
