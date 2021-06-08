@@ -1,8 +1,7 @@
-import datetime
 import json
 import os
-import shutil
 import subprocess
+import tempfile
 
 import numpy as np
 from openbabel import pybel
@@ -17,8 +16,6 @@ from delfta.utils import (
 )
 
 XTB_INPUT_FILE = os.path.join(XTB_PATH, "xtb.inp")
-TEMP_DIR = "/tmp/delfta_xtb/"
-os.makedirs(TEMP_DIR, exist_ok=True)
 
 
 def read_xtb_json(json_file, mol):
@@ -72,124 +69,117 @@ def get_homo_and_lumo_energies(data):
     return E_homo, E_lumo
 
 
-def run_xtb_calc(mol_file, opt=False):
+def run_xtb_calc(mol, opt=False):
     """Runs xtb single-point calculation with optional geometry optimization.
 
     Args:
-        mol_file (str): path to mol file. Any format that Openbabel accepts.
+        mol (openbabel.pybel.Molecule): An OpenBabel molecule instance. 
         opt (bool, optional): Whether to optimize the geometry. Defaults to False.
 
     Raises:
         ValueError: If xTB calculation throws an error.
 
     Returns:
-        dict: Molecular properties as computed by xTB (formation energy, HOMO/LUMO/gap energies, dipole, atomic charges)
+        dict: Molecular properties as computed by xTB (formation energy, HOMO/LUMO/gap energies,
+              dipole, atomic charges)
     """
     xtb_command = "--opt" if opt else ""
-    temp_logfile = os.path.join(TEMP_DIR, "xtb.log")
-    json_file = os.path.join(TEMP_DIR, "xtbout.json")
-    mol_file_wo_ext, ext = os.path.splitext(mol_file)
+    temp_dir = tempfile.TemporaryDirectory()
+    logfile = os.path.join(temp_dir.name, "xtb.log")
+    xtb_out = os.path.join(temp_dir.name, "xtbout.json")
 
-    if opt:
-        temp_optfile = os.path.join(TEMP_DIR, "xtbopt" + ext)
+    sdf_path = os.path.join(temp_dir.name, "mol.sdf")
+    sdf = pybel.Outputfile("sdf", sdf_path)
+    sdf.write(mol)
+    sdf.close()
 
-    with open(temp_logfile, "w") as f:
-        # run xTB
-        completed_process = subprocess.run(
-            [XTB_BINARY, mol_file, xtb_command, "--input", XTB_INPUT_FILE],
+    with open(logfile, "w") as f:
+        xtb_run = subprocess.run(
+            [XTB_BINARY, sdf_path, xtb_command, "--input", XTB_INPUT_FILE],
             stdout=f,
             stderr=subprocess.STDOUT,
-            cwd=TEMP_DIR,
+            cwd=temp_dir.name,
         )
-        if completed_process.returncode != 0:
-            # copy logfile to input location if xTB failed
-            t = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            permanent_logfile = os.path.join(
-                os.path.dirname(mol_file), f"xtb_error_{t}.log"
-            )
-            shutil.move(temp_logfile, permanent_logfile)
-            raise ValueError(
-                f"xTB calculation failed. See {permanent_logfile} for details."
-            )  # TODO should we have more checks for e.g. unsuccessful geometry optimization?
-    if opt:
-        # copy the optimized file to the input location
-        shutil.move(temp_optfile, mol_file_wo_ext + "_xtbopt" + ext)
-    mol = next(
-        pybel.readfile(ext.lstrip("."), mol_file)
-    )  # TODO: pybel.ob.obErrorLog.SetOutputLevel(0)
-    props = read_xtb_json(json_file, mol)
+
+    if xtb_run.returncode != 0:
+        error_out = os.path.join(temp_dir.name, "xtb_error.log")
+        raise ValueError(f"xTB calculation failed. See {error_out} for details.")
+
+    else:
+        props = read_xtb_json(xtb_out, mol)
+        temp_dir.cleanup()
     return props
 
 
 if __name__ == "__main__":
     import unittest
-    from rdkit import Chem
-    from delfta.utils import DATA_PATH
+    from delfta.utils import TESTS_PATH
 
     class TestCase(unittest.TestCase):
+        def __init__(self):
+            self.sdfs = [
+                    "CHEMBL1342110_conf_02.sdf",
+                    "CHEMBL1346802_conf_01.sdf",
+                    "CHEMBL136619_conf_00.sdf",
+                    "CHEMBL2163771_conf_00.sdf",
+                    "CHEMBL251439_conf_02.sdf",
+                    "CHEMBL3108781_conf_01.sdf",
+                    "CHEMBL3287835_conf_00.sdf",
+                    "CHEMBL340588_conf_02.sdf",
+                    "CHEMBL3641659_conf_00.sdf",
+                    "CHEMBL3781981_conf_00.sdf",
+                ]
+
+            self.sdfs = [
+                    os.path.join(TESTS_PATH, sdf) for sdf in self.sdfs
+                ]
+
         def test_compare_to_qmugs(self):
-            mol_files = [
-                "CHEMBL1342110_conf_02.sdf",
-                "CHEMBL1346802_conf_01.sdf",
-                "CHEMBL136619_conf_00.sdf",
-                "CHEMBL2163771_conf_00.sdf",
-                "CHEMBL251439_conf_02.sdf",
-                "CHEMBL3108781_conf_01.sdf",
-                "CHEMBL3287835_conf_00.sdf",
-                "CHEMBL340588_conf_02.sdf",
-                "CHEMBL3641659_conf_00.sdf",
-                "CHEMBL3781981_conf_00.sdf",
-            ]
-            mol_files = [
-                os.path.join(DATA_PATH, "test_data", elem) for elem in mol_files
-            ]
-            for mol_file in mol_files:
-                print(f"Testing {mol_file}")
-                props = run_xtb_calc(mol_file, opt=False)
-                props_from_sdf = next(
-                    Chem.SDMolSupplier(mol_file, removeHs=True)
-                ).GetPropsAsDict()
+            for sdf in self.sdfs:
+                mol = pybel.readfile("sdf", sdf).__next__()
+                props = run_xtb_calc(mol, opt=False)
+
                 self.assertTrue(
                     np.isclose(
                         props["E_form"],
-                        float(props_from_sdf["GFN2:FORMATION_ENERGY"]),
+                        float(mol.data["GFN2:FORMATION_ENERGY"]),
                         atol=1e-4,
                     )
                 )
                 self.assertTrue(
                     np.isclose(
                         props["E_homo"],
-                        float(props_from_sdf["GFN2:HOMO_ENERGY"]),
+                        float(mol.data["GFN2:HOMO_ENERGY"]),
                         atol=1e-4,
                     )
                 )
                 self.assertTrue(
                     np.isclose(
                         props["E_lumo"],
-                        float(props_from_sdf["GFN2:LUMO_ENERGY"]),
+                        float(mol.data["GFN2:LUMO_ENERGY"]),
                         atol=1e-4,
                     )
                 )
                 self.assertTrue(
                     np.isclose(
                         props["E_gap"],
-                        float(props_from_sdf["GFN2:HOMO_LUMO_GAP"]),
+                        float(mol.data["GFN2:HOMO_LUMO_GAP"]),
                         atol=1e-4,
                     )
                 )
                 self.assertTrue(
                     np.isclose(
                         props["dipole"],
-                        float(props_from_sdf["GFN2:DIPOLE"].split("|")[-1]),
+                        float(mol.data["GFN2:DIPOLE"].split("|")[-1]),
                         atol=1e-2,
                     )
                 )  # dipole is rounded
                 charges_sdf = [
                     float(elem)
-                    for elem in props_from_sdf["GFN2:MULLIKEN_CHARGES"].split("|")
+                    for elem in mol.data["GFN2:MULLIKEN_CHARGES"].split("|")
                 ]
                 self.assertTrue(
-                    np.all(np.isclose(props["charges"], charges_sdf, atol=1e-4))
+                    np.allclose(props["charges"], charges_sdf, atol=1e-4)
                 )
 
     unittest.main()

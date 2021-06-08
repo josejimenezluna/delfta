@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
+from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, TESTS_PATH
 
 DATASETS = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
 
@@ -32,6 +32,9 @@ MODELS_REMOTE = {
 XTB_REMOTE = (
     "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
 )
+
+
+TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
 
 def download(src, dest):
@@ -81,15 +84,27 @@ def get_model_weights(name="multitask"):
 
 
 if __name__ == "__main__":
+    # Trained models
     os.makedirs(MODEL_PATH, exist_ok=True)
     for model_name, model_path in MODELS:
         download(MODELS_REMOTE[model_name], model_path)
 
+    # Training data
     os.makedirs(DATA_PATH, exist_ok=True)
     for data_name, data_path in DATASETS:
         download(DATASET_REMOTE[model_name], data_path)
 
-    download(XTB_REMOTE, os.path.join(XTB_PATH, "xtb.tar.xz"))
+    # xtb binary
+    os.makedirs(XTB_PATH, exist_ok=True)
+    xtb_tar = os.path.join(XTB_PATH, "xtb.tar.xz")
+    download(XTB_REMOTE, xtb_tar)
 
-    with tarfile.open(os.path.join(XTB_PATH, "xtb.tar.xz")) as handle:
+    with tarfile.open(xtb_tar) as handle:
         handle.extractall(XTB_PATH)
+
+    # tests
+    tests_tar = os.path.join(DATA_PATH, "tests.tar.gz")
+    download(TESTS_REMOTE, tests_tar)
+
+    with tarfile.open(tests_tar) as handle:
+        handle.extractall(DATA_PATH)
