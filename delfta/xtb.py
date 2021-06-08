@@ -110,6 +110,7 @@ def run_xtb_calc(mol, opt=False):
 
 if __name__ == "__main__":
     import unittest
+
     from delfta.utils import TESTS_PATH
 
     class TestCase(unittest.TestCase):

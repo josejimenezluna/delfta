@@ -13,7 +13,9 @@ XTB_BINARY = os.path.join(XTB_PATH, "xtb-6.3.1", "bin", "xtb")
 EV_TO_HARTREE = (
     1 / 27.211386245988
 )  # https://physics.nist.gov/cgi-bin/cuu/Value?hrev (04.06.21)
+
 AU_TO_DEBYE = 1 / 0.3934303  # https://en.wikipedia.org/wiki/Debye (04.06.21)
+
 ELEM_TO_ATOMNUM = {
     "H": 1,
     "C": 6,
@@ -26,6 +28,7 @@ ELEM_TO_ATOMNUM = {
     "Br": 35,
     "I": 53,
 }
+
 ATOMNUM_TO_ELEM = {
     1: "H",
     6: "C",
@@ -38,6 +41,7 @@ ATOMNUM_TO_ELEM = {
     35: "Br",
     53: "I",
 }
+
 ATOM_ENERGIES_XTB = {
     "H": -0.393482763936,
     "C": -1.795110518041,
