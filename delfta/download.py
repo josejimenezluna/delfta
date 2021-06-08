@@ -32,7 +32,6 @@ XTB_REMOTE = (
     "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
 )
 
-
 TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
 
