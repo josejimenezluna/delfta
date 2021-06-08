@@ -116,26 +116,23 @@ if __name__ == "__main__":
     from delfta.utils import TESTS_PATH
 
     class TestCase(unittest.TestCase):
-        def __init__(self):
-            self.sdfs = [
-                    "CHEMBL1342110_conf_02.sdf",
-                    "CHEMBL1346802_conf_01.sdf",
-                    "CHEMBL136619_conf_00.sdf",
-                    "CHEMBL2163771_conf_00.sdf",
-                    "CHEMBL251439_conf_02.sdf",
-                    "CHEMBL3108781_conf_01.sdf",
-                    "CHEMBL3287835_conf_00.sdf",
-                    "CHEMBL340588_conf_02.sdf",
-                    "CHEMBL3641659_conf_00.sdf",
-                    "CHEMBL3781981_conf_00.sdf",
-                ]
-
-            self.sdfs = [
-                    os.path.join(TESTS_PATH, sdf) for sdf in self.sdfs
-                ]
-
         def test_compare_to_qmugs(self):
-            for sdf in self.sdfs:
+            sdfs = [
+                "CHEMBL1342110_conf_02.sdf",
+                "CHEMBL1346802_conf_01.sdf",
+                "CHEMBL136619_conf_00.sdf",
+                "CHEMBL2163771_conf_00.sdf",
+                "CHEMBL251439_conf_02.sdf",
+                "CHEMBL3108781_conf_01.sdf",
+                "CHEMBL3287835_conf_00.sdf",
+                "CHEMBL340588_conf_02.sdf",
+                "CHEMBL3641659_conf_00.sdf",
+                "CHEMBL3781981_conf_00.sdf",
+            ]
+
+            sdfs = [os.path.join(TESTS_PATH, sdf) for sdf in sdfs]
+
+            for sdf in sdfs:
                 mol = pybel.readfile("sdf", sdf).__next__()
                 props = run_xtb_calc(mol, opt=False)
 
@@ -148,16 +145,12 @@ if __name__ == "__main__":
                 )
                 self.assertTrue(
                     np.isclose(
-                        props["E_homo"],
-                        float(mol.data["GFN2:HOMO_ENERGY"]),
-                        atol=1e-4,
+                        props["E_homo"], float(mol.data["GFN2:HOMO_ENERGY"]), atol=1e-4,
                     )
                 )
                 self.assertTrue(
                     np.isclose(
-                        props["E_lumo"],
-                        float(mol.data["GFN2:LUMO_ENERGY"]),
-                        atol=1e-4,
+                        props["E_lumo"], float(mol.data["GFN2:LUMO_ENERGY"]), atol=1e-4,
                     )
                 )
                 self.assertTrue(
@@ -175,11 +168,8 @@ if __name__ == "__main__":
                     )
                 )  # dipole is rounded
                 charges_sdf = [
-                    float(elem)
-                    for elem in mol.data["GFN2:MULLIKEN_CHARGES"].split("|")
+                    float(elem) for elem in mol.data["GFN2:MULLIKEN_CHARGES"].split("|")
                 ]
-                self.assertTrue(
-                    np.allclose(props["charges"], charges_sdf, atol=1e-4)
-                )
+                self.assertTrue(np.allclose(props["charges"], charges_sdf, atol=1e-4))
 
     unittest.main()
