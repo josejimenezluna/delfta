@@ -5,6 +5,7 @@ import tarfile
 import h5py
 import requests
 import torch
+from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
@@ -28,13 +29,19 @@ MODELS_REMOTE = {
     "charges": "polybox.ethz.ch/...",
 }
 
-XTB_REMOTE = "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
+XTB_REMOTE = (
+    "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
+)
 
 
 def download(src, dest):
     r = requests.get(src, stream=True)
-    with open(dest, 'wb') as handle:
+    tsize = int(r.headers.get('content-length', 0))
+    progress = tqdm(total=tsize, unit='iB', unit_scale=True)
+
+    with open(dest, "wb") as handle:
         for chunk in r.iter_content(chunk_size=256):
+            progress.update(len(chunk))
             handle.write(chunk)
         return True
 
@@ -62,7 +69,9 @@ def get_model_weights(name="multitask"):
         downloaded_flag = True
         if not os.path.exists(MODELS[name]):
             os.makedirs(MODEL_PATH, exist_ok=True)
-            downloaded_flag = download(name, dict_lookup=MODEL_PATH, dict_remote=MODELS_REMOTE)
+            downloaded_flag = download(
+                name, dict_lookup=MODEL_PATH, dict_remote=MODELS_REMOTE
+            )
 
         if downloaded_flag:
             weights = torch.load(MODEL_PATH[name], map_location=DEVICE)
