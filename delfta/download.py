@@ -38,6 +38,19 @@ TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
 
 def download(src, dest):
+    """ Simple requests.get with a progress bar
+
+    Parameters
+    ----------
+    src : str
+        Remote path to be downloaded
+    dest : str
+        Local path for the download
+
+    Returns
+    -------
+    None
+    """
     r = requests.get(src, stream=True)
     tsize = int(r.headers.get('content-length', 0))
     progress = tqdm(total=tsize, unit='iB', unit_scale=True)
@@ -46,10 +59,22 @@ def download(src, dest):
         for chunk in r.iter_content(chunk_size=256):
             progress.update(len(chunk))
             handle.write(chunk)
-        return True
 
 
 def get_dataset(name="qmugs"):
+    """Returns a h5py dataset with a specific `name`. These are
+    checked in the `DATASETS` global variable.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of the h5py dataset to be returned, by default "qmugs"
+
+    Returns
+    -------
+    [h5py.File]
+        h5py file handle of the requested dataset
+    """
     if name not in DATASETS:
         raise ValueError("Dataset not supported")
     else:
@@ -66,6 +91,19 @@ def get_dataset(name="qmugs"):
 
 
 def get_model_weights(name="multitask"):
+    """Returns a torch.load handle for a model with a specific `name`.
+    These are checked in the `MODELS` global variable.
+
+    Parameters
+    ----------
+    name : str, optional
+        Name of the model weights to be returned, by default "multitask"
+
+    Returns
+    -------
+    [torch.weights]
+        Trained weights for the requested model
+    """
     if name not in MODELS:
         raise ValueError("Model not supported")
     else:

@@ -41,9 +41,6 @@ def read_xtb_json(json_file, mol):
         "dipole": np.linalg.norm(data["dipole"]) * AU_TO_DEBYE,
         "charges": data["partial charges"],
     }
-    assert np.isclose(
-        props["E_lumo"] - props["E_homo"], props["E_gap"]
-    )  # TODO @Jose: do such checks make sense, perhaps with a better error message?
     return props
 
 
