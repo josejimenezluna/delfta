@@ -1,4 +1,3 @@
-## Scripts to download training h5 files and trained models from polybox or other service.
 import os
 import tarfile
 
@@ -38,7 +37,7 @@ TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
 
 def download(src, dest):
-    """ Simple requests.get with a progress bar
+    """Simple requests.get with a progress bar
 
     Parameters
     ----------
