@@ -3,7 +3,7 @@ import numpy as np
 
 from delfta.download import get_model_weights
 from delfta.net_utils import MULTITASK_ENDPOINTS
-from delfta.xtb import get_xtb_props
+from delfta.xtb import run_xtb_calc
 
 
 class DelftaCalculator:
@@ -52,7 +52,7 @@ class DelftaCalculator:
         # ...
 
         for mol in mols:
-            xtb_out = get_xtb_props(mol)
+            xtb_out = run_xtb_calc(mol)
             xtb_props.append([xtb_out[task] for task in self.tasks])
 
         preds = []
