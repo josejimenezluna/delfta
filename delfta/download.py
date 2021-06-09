@@ -11,10 +11,12 @@ from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
 
 DATASETS = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
 
+# Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end. 
 DATASET_REMOTE = {
-    "qmugs": "polybox.ethz.ch/...",
+    "qmugs_train": "https://polybox.ethz.ch/index.php/s/NucWaxLPFDGc0DH/download",
+    "qmugs_eval": "https://polybox.ethz.ch/index.php/s/tLvYetVUSfsuwM5/download",
+    "qmugs_test": "https://polybox.ethz.ch/index.php/s/feOh2Unmwfyeq5N/download",
 }
-
 
 MODELS = {
     "multitask": os.path.join(MODEL_PATH, "multitask.pt"),
@@ -22,10 +24,14 @@ MODELS = {
     "charges": os.path.join(MODEL_PATH, "charges.pt"),
 }
 
+# Load models trained on 100k. Final sets to be added in the end. 
 MODELS_REMOTE = {
-    "multitask": "polybox.ethz.ch/...",
-    "single_energy": "polybox.ethz.ch/...",
-    "charges": "polybox.ethz.ch/...",
+    "multitask_delta": "https://polybox.ethz.ch/index.php/s/YcKUyHnUXup9vin/download",
+    "single_energy_delta": "https://polybox.ethz.ch/index.php/s/2nIjp7xUJejiYhh/download",
+    "charges_delta": "https://polybox.ethz.ch/index.php/s/5K1Q5Rx0zBphIHW/download",
+    "multitask_direct": "https://polybox.ethz.ch/index.php/s/YUUfc4wo0GdSdsu/download",
+    "single_energy_direct": "https://polybox.ethz.ch/index.php/s/51RBM0Bm4FvycPE/download",
+    "charges_direct": "https://polybox.ethz.ch/index.php/s/65c9FZQ8V7Egnnd/download",
 }
 
 XTB_REMOTE = (
