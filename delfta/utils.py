@@ -1,4 +1,6 @@
 import os
+import logging
+from tqdm import tqdm
 
 # Path handling shortcuts
 
@@ -54,3 +56,12 @@ ATOM_ENERGIES_XTB = {
     "Br": -4.048339371234,
     "I": -3.779630263390,
 }
+
+# logger
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(name)s | %(levelname)s: %(message)s",
+    datefmt="%Y/%m/%d %I:%M:%S %p",
+)
+LOGGER = logging.getLogger("DelFTa")

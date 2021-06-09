@@ -7,9 +7,11 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH
+from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
 
-DATASETS = {"qmugs": os.path.join(DATA_PATH, "qmugs.h5")}
+DATASETS = {"qmugs_train": os.path.join(DATA_PATH, "qmugs_train.h5"),
+            "qmugs_eval": os.path.join(DATA_PATH, "qmugs_eval.h5"),
+            "qmugs_test": os.path.join(DATA_PATH, "qmugs_test.h5")}
 
 # Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end. 
 DATASET_REMOTE = {
@@ -19,9 +21,12 @@ DATASET_REMOTE = {
 }
 
 MODELS = {
-    "multitask": os.path.join(MODEL_PATH, "multitask.pt"),
-    "single_energy": os.path.join(MODEL_PATH, "single_energy.pt"),
-    "charges": os.path.join(MODEL_PATH, "charges.pt"),
+    "multitask_delta": os.path.join(MODEL_PATH, "multitask.pt"),
+    "single_energy_delta": os.path.join(MODEL_PATH, "single_energy.pt"),
+    "charges_delta": os.path.join(MODEL_PATH, "charges.pt"),
+    "multitask_direct": os.path.join(MODEL_PATH, "multitask.pt"),
+    "single_energy_direct": os.path.join(MODEL_PATH, "single_energy.pt"),
+    "charges_direct": os.path.join(MODEL_PATH, "charges.pt"),
 }
 
 # Load models trained on 100k. Final sets to be added in the end. 
@@ -57,12 +62,13 @@ def download(src, dest):
     """
     r = requests.get(src, stream=True)
     tsize = int(r.headers.get('content-length', 0))
-    progress = tqdm(total=tsize, unit='iB', unit_scale=True)
+    progress = tqdm(total=tsize, unit='iB', unit_scale=True, position=0, leave=False)
 
     with open(dest, "wb") as handle:
-        for chunk in r.iter_content(chunk_size=256):
-            progress.update(len(chunk))
+        progress.set_description(os.path.basename(dest))
+        for chunk in r.iter_content(chunk_size=1024):
             handle.write(chunk)
+            progress.update(len(chunk))
 
 
 def get_dataset(name="qmugs"):
@@ -127,16 +133,19 @@ def get_model_weights(name="multitask"):
 
 if __name__ == "__main__":
     # Trained models
+    LOGGER.info("Now downloading trained models...")
     os.makedirs(MODEL_PATH, exist_ok=True)
-    for model_name, model_path in MODELS:
+    for model_name, model_path in MODELS.items():
         download(MODELS_REMOTE[model_name], model_path)
 
     # Training data
+    LOGGER.info("Now downloading training data...")
     os.makedirs(DATA_PATH, exist_ok=True)
-    for data_name, data_path in DATASETS:
-        download(DATASET_REMOTE[model_name], data_path)
+    for data_name, data_path in DATASETS.items():
+        download(DATASET_REMOTE[data_name], data_path)
 
     # xtb binary
+    LOGGER.info("Downloading xTB binary...")
     os.makedirs(XTB_PATH, exist_ok=True)
     xtb_tar = os.path.join(XTB_PATH, "xtb.tar.xz")
     download(XTB_REMOTE, xtb_tar)
@@ -145,6 +154,7 @@ if __name__ == "__main__":
         handle.extractall(XTB_PATH)
 
     # tests
+    LOGGER.info("Downloading tests...")
     tests_tar = os.path.join(DATA_PATH, "tests.tar.gz")
     download(TESTS_REMOTE, tests_tar)
 
