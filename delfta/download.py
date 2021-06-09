@@ -21,12 +21,12 @@ DATASET_REMOTE = {
 }
 
 MODELS = {
-    "multitask_delta": os.path.join(MODEL_PATH, "multitask.pt"),
-    "single_energy_delta": os.path.join(MODEL_PATH, "single_energy.pt"),
-    "charges_delta": os.path.join(MODEL_PATH, "charges.pt"),
-    "multitask_direct": os.path.join(MODEL_PATH, "multitask.pt"),
-    "single_energy_direct": os.path.join(MODEL_PATH, "single_energy.pt"),
-    "charges_direct": os.path.join(MODEL_PATH, "charges.pt"),
+    "multitask_delta": os.path.join(MODEL_PATH, "multitask_delta.pt"),
+    "single_energy_delta": os.path.join(MODEL_PATH, "single_energy_delta.pt"),
+    "charges_delta": os.path.join(MODEL_PATH, "charges_delta.pt"),
+    "multitask_direct": os.path.join(MODEL_PATH, "multitask_direct.pt"),
+    "single_energy_direct": os.path.join(MODEL_PATH, "single_energy_direct.pt"),
+    "charges_direct": os.path.join(MODEL_PATH, "charges_direct.pt"),
 }
 
 # Load models trained on 100k. Final sets to be added in the end. 
