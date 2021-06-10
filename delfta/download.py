@@ -82,7 +82,7 @@ def get_dataset(name="qmugs"):
 
     Returns
     -------
-    [h5py.File]
+    h5py.File
         h5py file handle of the requested dataset
     """
     if name not in DATASETS:
@@ -111,7 +111,7 @@ def get_model_weights(name="multitask"):
 
     Returns
     -------
-    [torch.weights]
+    torch.weights
         Trained weights for the requested model
     """
     if name not in MODELS:
