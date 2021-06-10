@@ -19,7 +19,8 @@ class EGNN(nn.Module):
         initialize_weights=True,
         fourier_features=32,
         aggr="mean",
-        global_prop=True):
+        global_prop=True,
+    ):
         """Main Equivariant Graph Neural Network class.
 
         Parameters
@@ -93,7 +94,9 @@ class EGNN(nn.Module):
             self.fnn2.append(nn.Linear(self.mlp_dim, self.n_outputs))
 
         else:
-            self.fnn.append(nn.Linear(self.mlp_dim, self.mlp_dim))  ## This line differs in both implementations!!!! TODO @kenatz
+            self.fnn.append(
+                nn.Linear(self.mlp_dim, self.mlp_dim)
+            )  ## This line differs in both implementations!!!! TODO @kenatz
             self.fnn.append(nn.Linear(self.mlp_dim, self.n_outputs))
 
         # Initialize weights
@@ -114,10 +117,7 @@ class EGNN(nn.Module):
         feature_list.append(features[:, self.pos_dim :])
 
         for kernel in self.kernels:
-            features = kernel(
-                x=features,
-                edge_index=g_batch.edge_index,
-            )
+            features = kernel(x=features, edge_index=g_batch.edge_index,)
 
             feature_list.append(features[:, self.pos_dim :])
 
@@ -178,7 +178,7 @@ class EGNN_sparse(MessagePassing):
         dropout=0.1,
         fourier_features=32,
         aggr="mean",
-        **kwargs
+        **kwargs,
     ):
         """Base torch geometric EGNN message-passing layer
 
@@ -254,9 +254,7 @@ class EGNN_sparse(MessagePassing):
             nn.init.zeros_(module.bias)
 
     def forward(
-        self,
-        x: Tensor,
-        edge_index: Adj,
+        self, x: Tensor, edge_index: Adj,
     ):
 
         coors, feats = x[:, : self.pos_dim], x[:, self.pos_dim :]
@@ -270,11 +268,7 @@ class EGNN_sparse(MessagePassing):
             rel_dist = rearrange(rel_dist, "n () d -> n d")
 
         hidden_out = self.propagate(
-            edge_index,
-            x=feats,
-            edge_attr=rel_dist,
-            coors=coors,
-            rel_coors=rel_coors,
+            edge_index, x=feats, edge_attr=rel_dist, coors=coors, rel_coors=rel_coors,
         )
 
         return torch.cat([coors, hidden_out], dim=-1)
