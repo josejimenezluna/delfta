@@ -70,7 +70,7 @@ class DatasetSingletaskSDF(Dataset):
         return len(self.h5f)
 
 
-### Multi task dict for training ### 
+### Multi task loader for training ### 
 # TODO: Add pkl for max min values per property. {key: (min, max)...}
 class DatasetMultitaskSDF(Dataset):
     def __init__(
