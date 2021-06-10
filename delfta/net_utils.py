@@ -5,11 +5,6 @@ import torch
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MULTITASK_ENDPOINTS = {"energy", "homo", "lumo", "gap", "dipole"}
 
-
-# TODO: Combine single and multitask loader. To do Ken.
-# TODO: Mol loader to do. Ken.
-# TODO: Add pkl for max min values per property. {key: (min, max)...}
-
 import networkx as nx
 import numpy as np
 import torch, h5py
@@ -17,22 +12,44 @@ from torch_geometric.data import Data, Dataset
 from torch_geometric.utils.undirected import to_undirected
 from torch_geometric.utils import add_self_loops
 
+QMUGS_ATOM_DICT = {
+    "Cl": 8,
+    "Br": 9,
+    "H": 1,
+    "C": 2,
+    "N": 3,
+    "O": 4,
+    "F": 5,
+    "S": 7,
+    "P": 6,
+    "I": 10,
+}
 
-class DatasetSingletask(Dataset):
+class DatasetSingletaskSDF(Dataset):
     def __init__(
         self,
-        h5file="qt_dict.h5",
-        prop="delta",
-    ):
-        self.h5f = h5py.File(h5file, "r")
-        self.prop = prop
+        path_to_sdfs="path_to_sdfs.txt",
+    ):  
+
+    with open(path_to_sdfs, 'r') as f:
+        self.sdfs = f.readlines()
 
     def __getitem__(self, idx):
 
-        # nodes coordinates and target
-        atomids = torch.LongTensor(self.h5f[str(idx)]["atomids"])
-        coords = torch.FloatTensor(self.h5f[str(idx)]["coords"])
-        target = torch.FloatTensor(self.h5f[str(idx)][self.prop])
+        mol = next(Chem.SDMolSupplier(self.sdfs[idx], removeHs=False))
+
+        # vertices and positions
+        atomids = []
+        coords = []
+        iterator = 0
+
+        for i in mol.GetAtoms():
+            atomids.append(QMUGS_ATOM_DICT[i.GetSymbol()])
+            coords.append(list(mol.GetConformer().GetAtomPosition(iterator)))
+            iterator += 1
+        
+        atomids = torch.LongTensor(np.array(atomids))
+        coords = torch.FloatTensor(np.array(coords))
 
         # edges
         edge_index = np.array(nx.complete_graph(atomids.size(0)).edges())
@@ -44,7 +61,6 @@ class DatasetSingletask(Dataset):
             atomids=atomids,
             coords=coords,
             edge_index=edge_index,
-            target=target,
             num_nodes=atomids.size(0),
         )
 
@@ -54,7 +70,9 @@ class DatasetSingletask(Dataset):
         return len(self.h5f)
 
 
-class DatasetMultitask(Dataset):
+### Multi task dict for training ### 
+# TODO: Add pkl for max min values per property. {key: (min, max)...}
+class DatasetMultitaskSDF(Dataset):
     def __init__(
         self,
         h5file="qt_dict.h5",
