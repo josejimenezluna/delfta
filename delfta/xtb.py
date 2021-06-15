@@ -11,6 +11,7 @@ from delfta.utils import (
     ATOMNUM_TO_ELEM,
     AU_TO_DEBYE,
     EV_TO_HARTREE,
+    LOGGER,
     XTB_BINARY,
     XTB_PATH,
 )
@@ -66,7 +67,7 @@ def get_homo_and_lumo_energies(data):
     return E_homo, E_lumo
 
 
-def run_xtb_calc(mol, opt=False):
+def run_xtb_calc(mol, opt=False, return_optmol=False):
     """Runs xtb single-point calculation with optional geometry optimization.
 
     Args:
@@ -80,6 +81,10 @@ def run_xtb_calc(mol, opt=False):
         dict: Molecular properties as computed by xTB (formation energy, HOMO/LUMO/gap energies,
               dipole, atomic charges)
     """
+    if return_optmol and not opt:
+        LOGGER.info("Can't have return_optmol set True with opt set to False. Setting the latter to True now.")
+        opt = True
+
     xtb_command = "--opt" if opt else ""
     temp_dir = tempfile.TemporaryDirectory()
     logfile = os.path.join(temp_dir.name, "xtb.log")
@@ -104,8 +109,10 @@ def run_xtb_calc(mol, opt=False):
 
     else:
         props = read_xtb_json(xtb_out, mol)
+        if return_optmol:
+            opt_mol = next(pybel.readfile("sdf", os.path.join(temp_dir.name, "xtbopt.sdf")))
         temp_dir.cleanup()
-    return props
+        return (props, opt_mol) if return_optmol else props
 
 
 if __name__ == "__main__":
