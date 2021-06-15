@@ -78,11 +78,12 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         ValueError: If xTB calculation throws an error.
 
     Returns:
-        dict: Molecular properties as computed by xTB (formation energy, HOMO/LUMO/gap energies,
+        dict: Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies,
               dipole, atomic charges)
+        opt_mol (openbabel.pybel.Molecule): An GFN2-xTB-optimized OpenBabel molecule instance. 
     """
     if return_optmol and not opt:
-        LOGGER.info("Can't have return_optmol set True with opt set to False. Setting the latter to True now.")
+        LOGGER.info("Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now.")
         opt = True
 
     xtb_command = "--opt" if opt else ""
