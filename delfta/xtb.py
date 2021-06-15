@@ -71,7 +71,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
     """Runs xtb single-point calculation with optional geometry optimization.
 
     Args:
-        mol (openbabel.pybel.Molecule): An OpenBabel molecule instance. 
+        mol (openbabel.pybel.Molecule): An OpenBabel molecule instance. Assumes hydrogens. 
         opt (bool, optional): Whether to optimize the geometry. Defaults to False.
 
     Raises:
@@ -80,7 +80,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
     Returns:
         dict: Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies,
               dipole, atomic charges)
-        opt_mol (openbabel.pybel.Molecule): An GFN2-xTB-optimized OpenBabel molecule instance. 
+        opt_mol (openbabel.pybel.Molecule, optional): An GFN2-xTB-optimized OpenBabel molecule instance. 
     """
     if return_optmol and not opt:
         LOGGER.info("Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now.")
