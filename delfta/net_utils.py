@@ -31,8 +31,8 @@ class DatasetSingletaskSDF(Dataset):
         path_to_sdfs="path_to_sdfs.txt",
     ):  
 
-    with open(path_to_sdfs, 'r') as f:
-        self.sdfs = f.readlines()
+        with open(path_to_sdfs, 'r') as f:
+            self.sdfs = f.readlines()
 
     def __getitem__(self, idx):
 
