@@ -75,7 +75,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         opt (bool, optional): Whether to optimize the geometry. Defaults to False.
 
     Raises:
-        ValueError: If xTB calculation throws an error.
+        ValueError: If the xTB calculation throws a non-zero return code.
 
     Returns:
         dict: Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies,
