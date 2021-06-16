@@ -83,7 +83,9 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         opt_mol (openbabel.pybel.Molecule, optional): An GFN2-xTB-optimized OpenBabel molecule instance. 
     """
     if return_optmol and not opt:
-        LOGGER.info("Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now.")
+        LOGGER.info(
+            "Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now."
+        )
         opt = True
 
     xtb_command = "--opt" if opt else ""
@@ -111,7 +113,9 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
     else:
         props = read_xtb_json(xtb_out, mol)
         if return_optmol:
-            opt_mol = next(pybel.readfile("sdf", os.path.join(temp_dir.name, "xtbopt.sdf")))
+            opt_mol = next(
+                pybel.readfile("sdf", os.path.join(temp_dir.name, "xtbopt.sdf"))
+            )
         temp_dir.cleanup()
         return (props, opt_mol) if return_optmol else props
 

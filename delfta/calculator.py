@@ -78,7 +78,7 @@ class DelftaCalculator:
             model_param = MODEL_HPARAMS[model_name]
             model = EGNN(
                 n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
-            )
+            ).eval()
             weights = get_model_weights(model_name)
             model.load_state_dict(weights)
             y_hat, g_ptr = self._get_preds(loader, model)
