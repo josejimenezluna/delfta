@@ -74,6 +74,7 @@ class DelftaCalculator:
         preds = {}
 
         for _, model_name in enumerate(self.models):
+            LOGGER.info(f"Now running network for model {model_name}...")
             model_param = MODEL_HPARAMS[model_name]
             model = EGNN(
                 n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
@@ -131,8 +132,8 @@ class DelftaCalculator:
 if __name__ == "__main__":
     from openbabel.pybel import readstring
 
-    mols = [readstring("smi", "CCO")] * 50
+    mols = [readstring("smi", "CCO")] * 5
     [mol.make3D() for mol in mols]
 
-    calc = DelftaCalculator(tasks=["charges"], delta=True)
+    calc = DelftaCalculator(tasks=["charges", "E_homo", "E_form"], delta=True)
     preds = calc.predict(mols, batch_size=32)
