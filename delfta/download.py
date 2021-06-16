@@ -9,11 +9,13 @@ from tqdm import tqdm
 from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
 
-DATASETS = {"qmugs_train": os.path.join(DATA_PATH, "qmugs_train.h5"),
-            "qmugs_eval": os.path.join(DATA_PATH, "qmugs_eval.h5"),
-            "qmugs_test": os.path.join(DATA_PATH, "qmugs_test.h5")}
+DATASETS = {
+    "qmugs_train": os.path.join(DATA_PATH, "qmugs_train.h5"),
+    "qmugs_eval": os.path.join(DATA_PATH, "qmugs_eval.h5"),
+    "qmugs_test": os.path.join(DATA_PATH, "qmugs_test.h5"),
+}
 
-# Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end. 
+# Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
 DATASET_REMOTE = {
     "qmugs_train": "https://polybox.ethz.ch/index.php/s/NucWaxLPFDGc0DH/download",
     "qmugs_eval": "https://polybox.ethz.ch/index.php/s/tLvYetVUSfsuwM5/download",
@@ -29,14 +31,14 @@ MODELS = {
     "charges_direct": os.path.join(MODEL_PATH, "charges_direct.pt"),
 }
 
-# Load models trained on 100k. Final sets to be added in the end. 
+# Load models trained on 100k. Final sets to be added in the end.
 MODELS_REMOTE = {
     "multitask_delta": "https://polybox.ethz.ch/index.php/s/YcKUyHnUXup9vin/download",
     "single_energy_delta": "https://polybox.ethz.ch/index.php/s/2nIjp7xUJejiYhh/download",
-    "charges_delta": "https://polybox.ethz.ch/index.php/s/5K1Q5Rx0zBphIHW/download",
+    "charges_delta": "https://polybox.ethz.ch/index.php/s/JS6egLA1jzHLmxp/download",
     "multitask_direct": "https://polybox.ethz.ch/index.php/s/YUUfc4wo0GdSdsu/download",
     "single_energy_direct": "https://polybox.ethz.ch/index.php/s/51RBM0Bm4FvycPE/download",
-    "charges_direct": "https://polybox.ethz.ch/index.php/s/65c9FZQ8V7Egnnd/download",
+    "charges_direct": "https://polybox.ethz.ch/index.php/s/JS6egLA1jzHLmxp/download",
 }
 
 XTB_REMOTE = (
@@ -61,8 +63,8 @@ def download(src, dest):
     None
     """
     r = requests.get(src, stream=True)
-    tsize = int(r.headers.get('content-length', 0))
-    progress = tqdm(total=tsize, unit='iB', unit_scale=True, position=0, leave=False)
+    tsize = int(r.headers.get("content-length", 0))
+    progress = tqdm(total=tsize, unit="iB", unit_scale=True, position=0, leave=False)
 
     with open(dest, "wb") as handle:
         progress.set_description(os.path.basename(dest))
