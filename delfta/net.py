@@ -94,9 +94,6 @@ class EGNN(nn.Module):
             self.fnn2.append(nn.Linear(self.mlp_dim, self.n_outputs))
 
         else:
-            self.fnn.append(
-                nn.Linear(self.mlp_dim, self.mlp_dim)
-            )  ## This line differs in both implementations!!!! TODO @kenatz
             self.fnn.append(nn.Linear(self.mlp_dim, self.n_outputs))
 
         # Initialize weights

@@ -102,35 +102,23 @@ def get_dataset(name="qmugs"):
             raise ValueError("Failed at downloading dataset!")
 
 
-def get_model_weights(name="multitask"):
+def get_model_weights(name):
     """Returns a torch.load handle for a model with a specific `name`.
     These are checked in the `MODELS` global variable.
 
     Parameters
     ----------
     name : str, optional
-        Name of the model weights to be returned, by default "multitask"
+        Name of the model weights to be returned
 
     Returns
     -------
     torch.weights
         Trained weights for the requested model
     """
-    if name not in MODELS:
-        raise ValueError("Model not supported")
-    else:
-        downloaded_flag = True
-        if not os.path.exists(MODELS[name]):
-            os.makedirs(MODEL_PATH, exist_ok=True)
-            downloaded_flag = download(
-                name, dict_lookup=MODEL_PATH, dict_remote=MODELS_REMOTE
-            )
+    weights = torch.load(MODELS[name], map_location=DEVICE)
+    return weights
 
-        if downloaded_flag:
-            weights = torch.load(MODEL_PATH[name], map_location=DEVICE)
-            return weights
-        else:
-            raise ValueError("Failed at downloading model!")
 
 
 if __name__ == "__main__":

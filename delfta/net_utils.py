@@ -1,12 +1,24 @@
-from openbabel import pybel
-import numpy as np
-import torch
+from collections import namedtuple
 
 import networkx as nx
-from torch_geometric.data import Data, Dataset, DataLoader
-from torch_geometric.utils.undirected import to_undirected
+import numpy as np
+import torch
+from torch_geometric.data import Data, DataLoader, Dataset
 from torch_geometric.utils import add_self_loops
+from torch_geometric.utils.undirected import to_undirected
 
+hparam = namedtuple('hparam', ['n_outputs', 'global_prop'])
+
+MULTITASK_ENDPOINTS = ["E_homo", "E_lumo", "E_gap", "dipole"]
+
+MODEL_HPARAMS = {
+    "multitask_delta": hparam(5, True),
+    "single_energy_delta": hparam(1, True),
+    "charges_delta": hparam(1, False),
+    "multitask_direct": hparam(5, True),
+    "single_energy_direct": hparam(1, True),
+    "charges_direct": hparam(1, False),
+}
 
 QMUGS_ATOM_DICT = {
     17: 8,
@@ -21,30 +33,20 @@ QMUGS_ATOM_DICT = {
     53: 10,
 }
 
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # TODO Ken: Add dict with final normalization values for multitask learning
 
 
 class DeltaDataset(Dataset):
-    def __init__(
-        self, path_to_input_files="path_to_inputs.txt", input_format="xyz",
-    ):
-
-        with open(path_to_input_files, "r") as f:
-            input_files = f.readlines()
-
-        self.input_files = [x.strip("\n") for x in input_files]
-        self.input_format = input_format
+    def __init__(self, mols):
+        self.mols = mols
 
     def __getitem__(self, idx):
-
-        # Load input file
-        molecule = next(pybel.readfile(self.input_format, self.input_files[idx]))
-
-        # Loop over atoms in molecule and get coordinates and atomic numbers
         coords = []
         atomids = []
 
-        for atom in molecule:
+        for atom in self.mols[idx]:
             coords.append(atom.coords)
             atomids.append(QMUGS_ATOM_DICT[atom.atomicnum])
 
@@ -67,18 +69,5 @@ class DeltaDataset(Dataset):
         return graph_data
 
     def __len__(self):
-        return len(self.input_files)
+        return len(self.mols)
 
-
-if __name__ == "__main__":
-
-    train_data = DeltaDataset(
-        path_to_input_files="/home/kenatz/CHEMBL1/conf_00/input_files.txt",
-        input_format="xyz",
-    )
-    train_pbar = DataLoader(train_data, batch_size=8, shuffle=False, num_workers=2)
-    print("Training set: ", len(train_data))
-
-    for g_batch in train_pbar:
-        print(g_batch.atomids.size())
-        print(g_batch.edge_index.size())

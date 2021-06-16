@@ -1,86 +1,138 @@
-## classes and functions for the main predictive capabilities
+import collections
+
 import numpy as np
+import torch
+from torch_geometric.data.dataloader import DataLoader
 
 from delfta.download import get_model_weights
-from delfta.net_utils import MULTITASK_ENDPOINTS
+from delfta.net import EGNN
+from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, DeltaDataset
+from delfta.utils import LOGGER
 from delfta.xtb import run_xtb_calc
 
 
 class DelftaCalculator:
-    def __init__(self, tasks, accurate_energy=False) -> None:
+    def __init__(self, tasks, delta=True) -> None:
         self.tasks = tasks
+        self.delta = delta
+        self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
         self.models = []
-
-        if accurate_energy:
-            self.models.append("single_energy")
 
         for task in tasks:
             if task in MULTITASK_ENDPOINTS:
-                self.models.append("multitask")
+                task_name = "multitask"
 
-            if task == "charges":
-                self.models.append("charges")
+            elif task == "charges":
+                task_name = "charges"
 
-        if self.models:
-            all_models = [MULTITASK_ENDPOINTS] + ["charges", "single_energy"]
-            raise ValueError(
-                f"None of the provided tasks were recognized, please provide one or several from {all_models}"
-            )
+            elif task == "E_form":
+                task_name = "single_energy"
 
-        pass
-    
+            else:
+                raise ValueError(f"Task name `{task}` not recognised")
+
+            if self.delta:
+                task_name += "_delta"
+            else:
+                task_name += "_direct"
+
+            self.models.append(task_name)
+
+        self.models = list(set(self.models))
+
     def _preprocess(self, mols):
+        # TODO
         # make sure that pybel mols contain all the information that is needed
         # (i.e. 3D coordinates and whatnot). Otherwise compute it.
         return mols
 
-    def _get_preds(loader, model):
+    def _get_preds(self, loader, model):
         y_hats = []
+        g_ptrs = []
+        with torch.no_grad():
+            for batch in loader:
+                y_hats.append(model(batch).numpy())
+                g_ptrs.append(batch.ptr.numpy())
+        return y_hats, g_ptrs
 
-        for batch in loader:
-            y_hats.append(model(batch).numpy())
-        return y_hats
-            
-    def predict(self, mols, batch_size=32):
-        xtb_props = []
+    def _get_xtb_props(self, mols):
+        xtb_props = collections.defaultdict(list)
 
-        mols = self._preprocess(mols)
-
-        # Data featurization code for the network goes here
-        # data = DeltaData(mols)
-        # loader = DataLoader(data, batch_size=batch_size)
-        # ...
-
+        LOGGER.info("Now running xTB...")
         for mol in mols:
             xtb_out = run_xtb_calc(mol)
-            xtb_props.append([xtb_out[task] for task in self.tasks])
+            for prop, val in xtb_out.items():
+                xtb_props[prop].append(val)
+        return xtb_props
 
-        preds = []
+    def predict(self, mols, batch_size=32):
+        mols = self._preprocess(mols)
 
-        for idx_model, model_name in enumerate(self.models):
-            if model_name == "multitask":
-                # model = MultitaskArchitecture(...)
-                pass
-            elif model_name == "charges":
-                # model = NodeLevelArchitecture(...)
-                pass
-            else:
-                # model = SingleTaskArchitecture(...)
-                pass
+        data = DeltaDataset(mols)
+        loader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
+        preds = {}
+
+        for _, model_name in enumerate(self.models):
+            model_param = MODEL_HPARAMS[model_name]
+            model = EGNN(
+                n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
+            )
             weights = get_model_weights(model_name)
             model.load_state_dict(weights)
-            delta_y = self._get_preds(loader, model)
+            y_hat, g_ptr = self._get_preds(loader, model)
 
-            if model_name != "charges":
-                delta_y = np.vstack(delta_y)
-                pred = np.array([xtb[idx_model] for xtb in xtb_props], dtype=np.float32) + delta_y
-                #TODO: check whether this difference direction is correct 
-                preds.append(pred)
+            if "charges" in model_name:
+                atom_y_hats = []
+                for batch_idx, batch_ptr in enumerate(g_ptr):
+                    atom_y_hats.extend(
+                        [
+                            y_hat[batch_idx][batch_ptr[idx] : batch_ptr[idx + 1]]
+                            for idx in range(len(batch_ptr) - 1)
+                        ]
+                    )
+                preds[model_name] = atom_y_hats
             else:
-                #TODO: handle differently-sized arrays. Probably has to be done manually.
-                # pred = 
-                preds.append(pred)
-                pass 
-        return preds
+                preds[model_name] = np.vstack(y_hat)
 
+        # Renormalize predictions
+        # TODO: missing norm
+
+        preds_filtered = {}
+
+        for model_name in preds.keys():
+            mname = model_name.rsplit("_", maxsplit=1)[0]
+            if mname == "single_energy":
+                preds_filtered["E_form"] = preds[model_name].squeeze()
+            elif mname == "multitask":
+                for task in self.multitasks:
+                    preds_filtered[task] = preds[model_name][
+                        :, MULTITASK_ENDPOINTS.index(task)
+                    ]
+
+            elif mname == "charges":
+                preds_filtered["charges"] = preds[model_name]
+
+        if self.delta:
+            xtb_props = self._get_xtb_props(mols)
+
+            for prop, delta_arr in preds_filtered.items():
+                if prop == "charges":
+                    preds_filtered[prop] = [
+                        d_arr + np.array(xtb_arr)
+                        for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
+                    ]
+                preds_filtered[prop] = delta_arr + np.array(
+                    xtb_props[prop], dtype=np.float32
+                )
+        return preds_filtered
+
+
+if __name__ == "__main__":
+    from openbabel.pybel import readstring
+
+    mols = [readstring("smi", "CCO")] * 50
+    [mol.make3D() for mol in mols]
+
+    calc = DelftaCalculator(tasks=["charges"], delta=True)
+    preds = calc.predict(mols, batch_size=32)
