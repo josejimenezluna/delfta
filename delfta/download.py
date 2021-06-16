@@ -10,17 +10,13 @@ from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
 
 DATASETS = {
-    "qmugs_train": os.path.join(DATA_PATH, "qmugs_train.h5"),
-    "qmugs_eval": os.path.join(DATA_PATH, "qmugs_eval.h5"),
-    "qmugs_test": os.path.join(DATA_PATH, "qmugs_test.h5"),
+    "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
+    "qmugs_eval": os.path.join(DATA_PATH, "qmugs", "qmugs_eval.h5"),
+    "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
 }
 
 # Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
-DATASET_REMOTE = {
-    "qmugs_train": "https://polybox.ethz.ch/index.php/s/NucWaxLPFDGc0DH/download",
-    "qmugs_eval": "https://polybox.ethz.ch/index.php/s/tLvYetVUSfsuwM5/download",
-    "qmugs_test": "https://polybox.ethz.ch/index.php/s/feOh2Unmwfyeq5N/download",
-}
+DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/mhvl0SaasXBxb3T/download"
 
 MODELS = {
     "multitask_delta": os.path.join(MODEL_PATH, "multitask_delta.pt"),
@@ -32,14 +28,7 @@ MODELS = {
 }
 
 # Load models trained on 100k. Final sets to be added in the end.
-MODELS_REMOTE = {
-    "multitask_delta": "https://polybox.ethz.ch/index.php/s/YcKUyHnUXup9vin/download",
-    "single_energy_delta": "https://polybox.ethz.ch/index.php/s/2nIjp7xUJejiYhh/download",
-    "charges_delta": "https://polybox.ethz.ch/index.php/s/JS6egLA1jzHLmxp/download",
-    "multitask_direct": "https://polybox.ethz.ch/index.php/s/YUUfc4wo0GdSdsu/download",
-    "single_energy_direct": "https://polybox.ethz.ch/index.php/s/51RBM0Bm4FvycPE/download",
-    "charges_direct": "https://polybox.ethz.ch/index.php/s/JS6egLA1jzHLmxp/download",
-}
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/Js0blsduCSgIaVU/download"
 
 XTB_REMOTE = (
     "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
@@ -120,19 +109,22 @@ def get_model_weights(name):
     return weights
 
 
-
 if __name__ == "__main__":
     # Trained models
     LOGGER.info("Now downloading trained models...")
     os.makedirs(MODEL_PATH, exist_ok=True)
-    for model_name, model_path in MODELS.items():
-        download(MODELS_REMOTE[model_name], model_path)
+    download(MODELS_REMOTE, os.path.join(MODEL_PATH, "models.tar.gz"))
+
+    with tarfile.open(os.path.join(MODEL_PATH, "models.tar.gz")) as handle:
+        handle.extractall(MODEL_PATH)
 
     # Training data
     LOGGER.info("Now downloading training data...")
     os.makedirs(DATA_PATH, exist_ok=True)
-    for data_name, data_path in DATASETS.items():
-        download(DATASET_REMOTE[data_name], data_path)
+    download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
+
+    with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
+        handle.extractall(DATA_PATH)
 
     # xtb binary
     LOGGER.info("Downloading xTB binary...")
