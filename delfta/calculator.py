@@ -55,22 +55,23 @@ class DelftaCalculator:
                 idx_no3D.append(idx)
                 if self.force3d:
                     mol.make3D()
-        if self.force3d:
-            LOGGER.info(
-                f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
-            )
+        if len(idx_no3D):
+            if self.force3d:
+                LOGGER.info(
+                    f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
+                )
 
-        else:
-            raise ValueError(
-                textwrap.fill(
-                    textwrap.dedent(
-                        f"""
-            Molecules at position {idx_no3D} have no 3D conformations available.
-            Either provide a mol with one or re-run calculator with `force3D=True`.
-            """
+            else:
+                raise ValueError(
+                    textwrap.fill(
+                        textwrap.dedent(
+                            f"""
+                Molecules at position {idx_no3D} have no 3D conformations available.
+                Either provide a mol with one or re-run calculator with `force3D=True`.
+                """
+                        )
                     )
                 )
-            )
         return mols
 
     def _get_preds(self, loader, model, scale=False):
