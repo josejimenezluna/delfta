@@ -1,6 +1,7 @@
-import os
 import collections
+import os
 import pickle
+import textwrap
 
 import numpy as np
 import torch
@@ -14,11 +15,12 @@ from delfta.xtb import run_xtb_calc
 
 
 class DelftaCalculator:
-    def __init__(self, tasks, delta=True) -> None:
+    def __init__(self, tasks, delta=True, force3D=False) -> None:
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
-        
+        self.force3d = force3D
+
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
 
@@ -47,9 +49,28 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _preprocess(self, mols):
-        # TODO
-        # make sure that pybel mols contain all the information that is needed
-        # (i.e. 3D coordinates and whatnot). Otherwise compute it.
+        idx_no3D = []
+        for idx, mol in enumerate(mols):
+            if mol.dim != 3:
+                idx_no3D.append(idx)
+                if self.force3d:
+                    mol.make3D()
+        if self.force3d:
+            LOGGER.info(
+                f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
+            )
+
+        else:
+            raise ValueError(
+                textwrap.fill(
+                    textwrap.dedent(
+                        f"""
+            Molecules at position {idx_no3D} have no 3D conformations available.
+            Either provide a mol with one or re-run calculator with `force3D=True`.
+            """
+                    )
+                )
+            )
         return mols
 
     def _get_preds(self, loader, model, scale=False):
@@ -114,7 +135,6 @@ class DelftaCalculator:
 
                 preds[model_name] = y_hat
 
-
         preds_filtered = {}
 
         for model_name in preds.keys():
@@ -146,15 +166,32 @@ class DelftaCalculator:
 
 
 if __name__ == "__main__":
-    from openbabel.pybel import readfile
+    # from openbabel.pybel import readfile
 
-    mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]
-    # [mol.make3D() for mol in mols]
+    # mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]
 
-    calc = DelftaCalculator(tasks=["E_homo", "E_lumo", "E_gap", "dipole"], delta=True)
+    # calc = DelftaCalculator(
+    #     tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"], delta=True
+    # )
+    # preds_delta = calc.predict(mols, batch_size=32)
+
+    # calc = DelftaCalculator(
+    #     tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"], delta=False
+    # )
+    # preds_direct = calc.predict(mols, batch_size=32)
+
+    # xtb_props = run_xtb_calc(mols[0])
+
+    ####
+    from openbabel.pybel import readstring
+
+    mols = [readstring("smi", "CCO")]
+    calc = DelftaCalculator(
+        tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"],
+        delta=True,
+        force3D=True,
+    )
     preds_delta = calc.predict(mols, batch_size=32)
 
-    calc = DelftaCalculator(tasks=["E_homo", "E_lumo", "E_gap", "dipole"], delta=False)
-    preds_direct = calc.predict(mols, batch_size=32)
+    # [mol.make3D() for mol in mols]
 
-    xtb_props = run_xtb_calc(mols[0])
