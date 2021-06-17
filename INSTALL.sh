@@ -2,7 +2,7 @@ CONDA_DIR=$(conda info --base)
 CUDA="cu102"
 TORCH="1.7.0"
 
-source $CONDA_DIR/etc/profile.d/conda.sh
+source ${CONDA_DIR}/etc/profile.d/conda.sh
 
 conda env create -f environment.yml
 conda activate delfta

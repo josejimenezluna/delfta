@@ -1,4 +1,6 @@
+import os
 import collections
+import pickle
 
 import numpy as np
 import torch
@@ -7,7 +9,7 @@ from torch_geometric.data.dataloader import DataLoader
 from delfta.download import get_model_weights
 from delfta.net import EGNN
 from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, DeltaDataset
-from delfta.utils import LOGGER
+from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
 
@@ -16,6 +18,10 @@ class DelftaCalculator:
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
+        
+        with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
+            self.norm = pickle.load(handle)
+
         self.models = []
 
         for task in tasks:
@@ -46,7 +52,7 @@ class DelftaCalculator:
         # (i.e. 3D coordinates and whatnot). Otherwise compute it.
         return mols
 
-    def _get_preds(self, loader, model):
+    def _get_preds(self, loader, model, scale=False):
         y_hats = []
         g_ptrs = []
         with torch.no_grad():
@@ -64,6 +70,9 @@ class DelftaCalculator:
             for prop, val in xtb_out.items():
                 xtb_props[prop].append(val)
         return xtb_props
+
+    def _inv_scale(self, preds, norm_dict):
+        return preds * norm_dict["scale"] + norm_dict["location"]
 
     def predict(self, mols, batch_size=32):
         mols = self._preprocess(mols)
@@ -94,10 +103,16 @@ class DelftaCalculator:
                     )
                 preds[model_name] = atom_y_hats
             else:
-                preds[model_name] = np.vstack(y_hat)
+                y_hat = np.vstack(y_hat)
 
-        # Renormalize predictions
-        # TODO: missing norm
+                if "multitask" in model_name:
+                    if "direct" in model_name:
+                        y_hat = self._inv_scale(y_hat, self.norm["direct"])
+                    else:
+                        y_hat = self._inv_scale(y_hat, self.norm["delta"])
+
+                preds[model_name] = y_hat
+
 
         preds_filtered = {}
 
@@ -130,10 +145,15 @@ class DelftaCalculator:
 
 
 if __name__ == "__main__":
-    from openbabel.pybel import readstring
+    from openbabel.pybel import readfile
 
-    mols = [readstring("smi", "CCO")] * 5
-    [mol.make3D() for mol in mols]
+    mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]
+    # [mol.make3D() for mol in mols]
 
-    calc = DelftaCalculator(tasks=["charges", "E_homo", "E_form"], delta=True)
-    preds = calc.predict(mols, batch_size=32)
+    calc = DelftaCalculator(tasks=["E_homo", "E_lumo", "E_gap", "dipole"], delta=True)
+    preds_delta = calc.predict(mols, batch_size=32)
+
+    calc = DelftaCalculator(tasks=["E_homo", "E_lumo", "E_gap", "dipole"], delta=False)
+    preds_direct = calc.predict(mols, batch_size=32)
+
+    xtb_props = run_xtb_calc(mols[0])
