@@ -55,6 +55,7 @@ class DelftaCalculator:
     def _get_preds(self, loader, model, scale=False):
         y_hats = []
         g_ptrs = []
+
         with torch.no_grad():
             for batch in loader:
                 y_hats.append(model(batch).numpy())
