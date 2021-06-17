@@ -12,6 +12,7 @@ from delfta.net import EGNN
 from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, DeltaDataset
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
+from delfta.net_utils import DEVICE
 
 
 class DelftaCalculator:
@@ -110,7 +111,7 @@ class DelftaCalculator:
             model = EGNN(
                 n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
             ).eval()
-            weights = get_model_weights(model_name)
+            weights = get_model_weights(model_name).to(DEVICE)
             model.load_state_dict(weights)
             y_hat, g_ptr = self._get_preds(loader, model)
 
@@ -166,6 +167,7 @@ class DelftaCalculator:
 
 
 if __name__ == "__main__":
+    ## TODO: check if water raises a "not 3D" error
     from openbabel.pybel import readfile
 
     mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]

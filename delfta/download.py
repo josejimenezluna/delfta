@@ -6,7 +6,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from delfta.net_utils import DEVICE
+# from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
 
 DATASETS = {
@@ -105,7 +105,7 @@ def get_model_weights(name):
     torch.weights
         Trained weights for the requested model
     """
-    weights = torch.load(MODELS[name], map_location=DEVICE)
+    weights = torch.load(MODELS[name])
     return weights
 
 
