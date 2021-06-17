@@ -9,7 +9,7 @@ from torch_geometric.utils.undirected import to_undirected
 
 hparam = namedtuple('hparam', ['n_outputs', 'global_prop'])
 
-MULTITASK_ENDPOINTS = ["E_homo", "E_lumo", "E_gap", "dipole"]
+MULTITASK_ENDPOINTS = {"E_homo": 1, "E_lumo": 2, "E_gap": 3, "dipole": 4}
 
 MODEL_HPARAMS = {
     "multitask_delta": hparam(5, True),

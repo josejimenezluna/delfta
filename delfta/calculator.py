@@ -124,7 +124,7 @@ class DelftaCalculator:
             elif mname == "multitask":
                 for task in self.multitasks:
                     preds_filtered[task] = preds[model_name][
-                        :, MULTITASK_ENDPOINTS.index(task)
+                        :, MULTITASK_ENDPOINTS[task]
                     ]
 
             elif mname == "charges":
