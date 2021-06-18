@@ -62,14 +62,14 @@ def download(src, dest):
             progress.update(len(chunk))
 
 
-def get_dataset(name="qmugs"):
+def get_dataset(name):
     """Returns a h5py dataset with a specific `name`. These are
     checked in the `DATASETS` global variable.
 
     Parameters
     ----------
     name : str, optional
-        Name of the h5py dataset to be returned, by default "qmugs"
+        Name of the h5py dataset to be returned.
 
     Returns
     -------
@@ -79,16 +79,9 @@ def get_dataset(name="qmugs"):
     if name not in DATASETS:
         raise ValueError("Dataset not supported")
     else:
-        downloaded_flag = True
-        if not os.path.exists(DATASETS[name]):
-            os.makedirs(DATA_PATH, exist_ok=True)
-            downloaded_flag = download(name)
+        h5 = h5py.File(DATASETS[name], "r")
+        return h5
 
-        if downloaded_flag:
-            h5 = h5py.File(DATASETS[name], "r")
-            return h5
-        else:
-            raise ValueError("Failed at downloading dataset!")
 
 
 def get_model_weights(name):
