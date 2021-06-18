@@ -15,6 +15,7 @@ from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
+
 class DelftaCalculator:
     def __init__(self, tasks="all", delta=True, force3D=False) -> None:
         if tasks == "all":
@@ -173,9 +174,5 @@ if __name__ == "__main__":
     from openbabel.pybel import readstring
 
     mols = [readstring("smi", "CCO")]
-    calc = DelftaCalculator(
-        tasks="all",
-        delta=True,
-        force3D=True,
-    )
+    calc = DelftaCalculator(tasks="all", delta=True, force3D=True,)
     preds_delta = calc.predict(mols, batch_size=32)

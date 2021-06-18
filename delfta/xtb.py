@@ -107,7 +107,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         )
 
     if xtb_run.returncode != 0:
-        error_out = os.path.join(temp_dir.name, "xtb_error.log")
+        error_out = os.path.join(temp_dir.name, "xtb.log")
         raise ValueError(f"xTB calculation failed. See {error_out} for details.")
 
     else:
