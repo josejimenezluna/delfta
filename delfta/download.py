@@ -1,3 +1,4 @@
+import argparse
 import os
 import tarfile
 
@@ -101,6 +102,16 @@ def get_model_weights(name):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="General download script")
+    parser.add_argument("training",
+                        dest="training",
+                        type=str, 
+                        required=False,
+                        default=False)
+    args = parser.parse_args()
+
+
+
     # Trained models
     LOGGER.info("Now downloading trained models...")
     models_tar = os.path.join(ROOT_PATH, "models.tar.gz")
@@ -109,13 +120,14 @@ if __name__ == "__main__":
     with tarfile.open(models_tar) as handle:
         handle.extractall(ROOT_PATH)
 
-    # Training data
-    LOGGER.info("Now downloading training data...")
-    os.makedirs(DATA_PATH, exist_ok=True)
-    download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
+    if args.training:
+        # Training data
+        LOGGER.info("Now downloading training data...")
+        os.makedirs(DATA_PATH, exist_ok=True)
+        download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
-    with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
-        handle.extractall(DATA_PATH)
+        with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
+            handle.extractall(DATA_PATH)
 
     # tests
     LOGGER.info("Downloading tests...")
