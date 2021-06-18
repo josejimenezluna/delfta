@@ -12,9 +12,9 @@ from delfta.net import EGNN
 from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, DeltaDataset
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
-from delfta.net_utils import DEVICE
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
+
 
 class DelftaCalculator:
     def __init__(self, tasks="all", delta=True, force3D=False) -> None:
@@ -115,7 +115,7 @@ class DelftaCalculator:
             model = EGNN(
                 n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
             ).eval()
-            weights = get_model_weights(model_name).to(DEVICE)
+            weights = get_model_weights(model_name)
             model.load_state_dict(weights)
             y_hat, g_ptr = self._get_preds(loader, model)
 
@@ -190,11 +190,6 @@ if __name__ == "__main__":
     from openbabel.pybel import readstring
 
     mols = [readstring("smi", "CCO")]
-    calc = DelftaCalculator(
-        tasks="all",
-        delta=True,
-        force3D=True,
-    )
+    calc = DelftaCalculator(tasks="all", delta=True, force3D=True,)
     preds_delta = calc.predict(mols, batch_size=32)
-
 

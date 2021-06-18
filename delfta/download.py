@@ -6,7 +6,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-# from delfta.net_utils import DEVICE
+from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
 
 DATASETS = {
@@ -105,7 +105,7 @@ def get_model_weights(name):
     torch.weights
         Trained weights for the requested model
     """
-    weights = torch.load(MODELS[name])
+    weights = torch.load(MODELS[name], map_location=DEVICE)
     return weights
 
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
     # tests
     LOGGER.info("Downloading tests...")
-    tests_tar = os.path.join(DATA_PATH, "tests.tar.gz")
+    tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
     download(TESTS_REMOTE, tests_tar)
 
     with tarfile.open(tests_tar) as handle:
