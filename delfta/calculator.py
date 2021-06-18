@@ -170,21 +170,6 @@ class DelftaCalculator:
 
 
 if __name__ == "__main__":
-    from openbabel.pybel import readfile
-
-    mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]
-
-    calc = DelftaCalculator(tasks="all", delta=True)
-    preds_delta = calc.predict(mols, batch_size=32)
-
-    calc = DelftaCalculator(
-        tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"], delta=False
-    )
-    preds_direct = calc.predict(mols, batch_size=32)
-
-    xtb_props = run_xtb_calc(mols[0])
-
-    ####
     from openbabel.pybel import readstring
 
     mols = [readstring("smi", "CCO")]
@@ -194,5 +179,3 @@ if __name__ == "__main__":
         force3D=True,
     )
     preds_delta = calc.predict(mols, batch_size=32)
-
-

@@ -1,13 +1,13 @@
 import os
 import logging
-from tqdm import tqdm
 
 # Path handling shortcuts
 
-DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+ROOT_PATH = os.path.dirname(os.path.dirname(__file__))
+DATA_PATH = os.path.join(ROOT_PATH, "data")
 TESTS_PATH = os.path.join(DATA_PATH, "test_data")
-MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
-UTILS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "utils")
+MODEL_PATH = os.path.join(ROOT_PATH, "models")
+UTILS_PATH = os.path.join(ROOT_PATH, "utils")
 XTB_BINARY = os.path.join(os.environ.get("CONDA_PREFIX"), "bin", "xtb")
 
 # Constants
