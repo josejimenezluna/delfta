@@ -1,3 +1,4 @@
+import argparse
 import os
 import tarfile
 
@@ -7,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
+from delfta.utils import DATA_PATH, MODEL_PATH, LOGGER, ROOT_PATH
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
@@ -30,9 +31,7 @@ MODELS = {
 # Load models trained on 100k. Final sets to be added in the end.
 MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/Js0blsduCSgIaVU/download"
 
-XTB_REMOTE = (
-    "https://github.com/grimme-lab/xtb/releases/download/v6.3.1/xtb-200615.tar.xz"
-)
+UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
 
 TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
@@ -62,14 +61,14 @@ def download(src, dest):
             progress.update(len(chunk))
 
 
-def get_dataset(name="qmugs"):
+def get_dataset(name):
     """Returns a h5py dataset with a specific `name`. These are
     checked in the `DATASETS` global variable.
 
     Parameters
     ----------
     name : str, optional
-        Name of the h5py dataset to be returned, by default "qmugs"
+        Name of the h5py dataset to be returned.
 
     Returns
     -------
@@ -79,16 +78,9 @@ def get_dataset(name="qmugs"):
     if name not in DATASETS:
         raise ValueError("Dataset not supported")
     else:
-        downloaded_flag = True
-        if not os.path.exists(DATASETS[name]):
-            os.makedirs(DATA_PATH, exist_ok=True)
-            downloaded_flag = download(name)
+        h5 = h5py.File(DATASETS[name], "r")
+        return h5
 
-        if downloaded_flag:
-            h5 = h5py.File(DATASETS[name], "r")
-            return h5
-        else:
-            raise ValueError("Failed at downloading dataset!")
 
 
 def get_model_weights(name):
@@ -110,30 +102,32 @@ def get_model_weights(name):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="General download script")
+    parser.add_argument("training",
+                        dest="training",
+                        type=str, 
+                        required=False,
+                        default=False)
+    args = parser.parse_args()
+
+
+
     # Trained models
     LOGGER.info("Now downloading trained models...")
-    os.makedirs(MODEL_PATH, exist_ok=True)
-    download(MODELS_REMOTE, os.path.join(MODEL_PATH, "models.tar.gz"))
+    models_tar = os.path.join(ROOT_PATH, "models.tar.gz")
+    download(MODELS_REMOTE, models_tar)
 
-    with tarfile.open(os.path.join(MODEL_PATH, "models.tar.gz")) as handle:
-        handle.extractall(MODEL_PATH)
+    with tarfile.open(models_tar) as handle:
+        handle.extractall(ROOT_PATH)
 
-    # Training data
-    LOGGER.info("Now downloading training data...")
-    os.makedirs(DATA_PATH, exist_ok=True)
-    download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
+    if args.training:
+        # Training data
+        LOGGER.info("Now downloading training data...")
+        os.makedirs(DATA_PATH, exist_ok=True)
+        download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
-    with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
-        handle.extractall(DATA_PATH)
-
-    # xtb binary
-    LOGGER.info("Downloading xTB binary...")
-    os.makedirs(XTB_PATH, exist_ok=True)
-    xtb_tar = os.path.join(XTB_PATH, "xtb.tar.xz")
-    download(XTB_REMOTE, xtb_tar)
-
-    with tarfile.open(xtb_tar) as handle:
-        handle.extractall(XTB_PATH)
+        with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
+            handle.extractall(DATA_PATH)
 
     # tests
     LOGGER.info("Downloading tests...")
@@ -142,3 +136,11 @@ if __name__ == "__main__":
 
     with tarfile.open(tests_tar) as handle:
         handle.extractall(DATA_PATH)
+
+    # utils
+    LOGGER.info("Downloading utils...")
+    utils_tar = os.path.join(ROOT_PATH, "utils.tar.gz")
+    download(UTILS_REMOTE, utils_tar)
+
+    with tarfile.open(utils_tar) as handle:
+        handle.extractall(ROOT_PATH)
