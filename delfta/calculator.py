@@ -14,9 +14,12 @@ from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 from delfta.net_utils import DEVICE
 
+_ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
 class DelftaCalculator:
-    def __init__(self, tasks, delta=True, force3D=False) -> None:
+    def __init__(self, tasks="all", delta=True, force3D=False) -> None:
+        if tasks == "all":
+            tasks = _ALLTASKS
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
@@ -56,7 +59,7 @@ class DelftaCalculator:
                 idx_no3D.append(idx)
                 if self.force3d:
                     mol.make3D()
-        if len(idx_no3D):
+        if idx_no3D:
             if self.force3d:
                 LOGGER.info(
                     f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
@@ -173,9 +176,7 @@ if __name__ == "__main__":
 
     mols = [next(readfile("sdf", "data/trial/conf_final.sdf"))]
 
-    calc = DelftaCalculator(
-        tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"], delta=True
-    )
+    calc = DelftaCalculator(tasks="all", delta=True)
     preds_delta = calc.predict(mols, batch_size=32)
 
     calc = DelftaCalculator(
@@ -190,11 +191,10 @@ if __name__ == "__main__":
 
     mols = [readstring("smi", "CCO")]
     calc = DelftaCalculator(
-        tasks=["E_form", "E_homo", "E_lumo", "E_gap", "dipole"],
+        tasks="all",
         delta=True,
         force3D=True,
     )
     preds_delta = calc.predict(mols, batch_size=32)
 
-    # [mol.make3D() for mol in mols]
 
