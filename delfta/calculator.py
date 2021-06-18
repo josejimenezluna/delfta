@@ -55,7 +55,7 @@ class DelftaCalculator:
                 idx_no3D.append(idx)
                 if self.force3d:
                     mol.make3D()
-        if len(idx_no3D):
+        if idx_no3D:
             if self.force3d:
                 LOGGER.info(
                     f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
