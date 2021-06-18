@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, XTB_PATH, LOGGER
+from delfta.utils import DATA_PATH, MODEL_PATH, LOGGER
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
@@ -125,15 +125,6 @@ if __name__ == "__main__":
 
     with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
         handle.extractall(DATA_PATH)
-
-    # xtb binary
-    LOGGER.info("Downloading xTB binary...")
-    os.makedirs(XTB_PATH, exist_ok=True)
-    xtb_tar = os.path.join(XTB_PATH, "xtb.tar.xz")
-    download(XTB_REMOTE, xtb_tar)
-
-    with tarfile.open(xtb_tar) as handle:
-        handle.extractall(XTB_PATH)
 
     # tests
     LOGGER.info("Downloading tests...")

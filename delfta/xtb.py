@@ -13,10 +13,10 @@ from delfta.utils import (
     EV_TO_HARTREE,
     LOGGER,
     XTB_BINARY,
-    XTB_PATH,
+    UTILS_PATH,
 )
 
-XTB_INPUT_FILE = os.path.join(XTB_PATH, "xtb.inp")
+XTB_INPUT_FILE = os.path.join(UTILS_PATH, "xtb.inp")
 
 
 def read_xtb_json(json_file, mol):

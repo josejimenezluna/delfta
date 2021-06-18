@@ -7,8 +7,8 @@ from tqdm import tqdm
 DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 TESTS_PATH = os.path.join(DATA_PATH, "test_data")
 MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "models")
-XTB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "xtb")
-XTB_BINARY = os.path.join(XTB_PATH, "xtb-6.3.1", "bin", "xtb")
+UTILS_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "utils")
+XTB_BINARY = os.path.join(os.environ.get("CONDA_PREFIX"), "bin", "xtb")
 
 # Constants
 
