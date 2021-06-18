@@ -103,13 +103,13 @@ def get_model_weights(name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
-    parser.add_argument("training",
-                        dest="training",
+    parser.add_argument("--training",
                         type=str, 
                         required=False,
                         default=False)
     args = parser.parse_args()
 
+    os.makedirs(DATA_PATH, exist_ok=True)
 
 
     # Trained models
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     if args.training:
         # Training data
         LOGGER.info("Now downloading training data...")
-        os.makedirs(DATA_PATH, exist_ok=True)
+        
         download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
         with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
