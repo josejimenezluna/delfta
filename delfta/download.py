@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, MODEL_PATH, LOGGER, ROOT_PATH
+from delfta.utils import DATA_PATH, LOGGER, MODEL_PATH, ROOT_PATH
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
@@ -109,8 +109,6 @@ if __name__ == "__main__":
                         required=False,
                         default=False)
     args = parser.parse_args()
-
-
 
     # Trained models
     LOGGER.info("Now downloading trained models...")
