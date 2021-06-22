@@ -15,9 +15,10 @@ from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
+
 class DelftaCalculator:
     def __init__(self, tasks="all", delta=True, force3D=False) -> None:
-        if tasks == "all":
+        if tasks == "all" or tasks == ["all"]:
             tasks = _ALLTASKS
         self.tasks = tasks
         self.delta = delta

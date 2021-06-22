@@ -21,17 +21,17 @@ MODEL_HPARAMS = {
 }
 
 QMUGS_ATOM_DICT = {
-    17: 8,
-    35: 9,
     1: 1,
     6: 2,
     7: 3,
     8: 4,
     9: 5,
-    16: 7,
     15: 6,
+    16: 7,
+    17: 8,
+    35: 9,
     53: 10,
-}
+} # atomic number --> index
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

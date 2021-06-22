@@ -1,9 +1,7 @@
 # Project-specifics
 xtb/
-tutorials/
 models/
 data/
-data/test_data
 *.json
 *.pyc
 *.tar.gz
