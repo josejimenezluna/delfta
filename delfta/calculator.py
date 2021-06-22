@@ -78,7 +78,7 @@ class DelftaCalculator:
                 )
         return mols
 
-    def _get_preds(self, loader, model, scale=False):
+    def _get_preds(self, loader, model):
         y_hats = []
         g_ptrs = []
 
@@ -170,9 +170,18 @@ class DelftaCalculator:
         return preds_filtered
 
 
-if __name__ == "__main__":
-    from openbabel.pybel import readstring
+# if __name__ == "__main__":
+#     from openbabel.pybel import readstring, readfile
 
-    mols = [readstring("smi", "CCO")]
-    calc = DelftaCalculator(tasks="all", delta=True, force3D=True,)
-    preds_delta = calc.predict(mols, batch_size=32)
+#     mols = [readstring("smi", "CCO")]
+#     calc = DelftaCalculator(
+#         tasks="all",
+#         delta=True,
+#         force3D=True,
+#     )
+#     preds_delta = calc.predict(mols, batch_size=32)
+
+#     # problematic xtb
+
+#     mols_problematic = [next(readfile("sdf", "/home/hawk31/Downloads/conf_problematic.sdf"))]
+#     preds_delta = calc.predict(mols_problematic, batch_size=32)
