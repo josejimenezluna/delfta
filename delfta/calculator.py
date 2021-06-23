@@ -10,20 +10,21 @@ from torch_geometric.data.dataloader import DataLoader
 
 from delfta.download import get_model_weights
 from delfta.net import EGNN
-from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, DeltaDataset
+from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, QMUGS_ATOM_DICT, DeltaDataset
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
 class DelftaCalculator:
-    def __init__(self, tasks="all", delta=True, force3D=False) -> None:
+    def __init__(self, tasks="all", delta=True, force3D=False, verbose=True) -> None:
         if tasks == "all":
             tasks = _ALLTASKS
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
         self.force3d = force3D
+        self.verbose = verbose
 
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
@@ -52,7 +53,7 @@ class DelftaCalculator:
 
         self.models = list(set(self.models))
 
-    def _preprocess(self, mols):
+    def _3dcheck(self, mols):
         idx_no3D = []
         for idx, mol in enumerate(mols):
             if mol.dim != 3:
@@ -61,9 +62,10 @@ class DelftaCalculator:
                     mol.make3D()
         if idx_no3D:
             if self.force3d:
-                LOGGER.info(
-                    f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
-                )
+                if self.verbose:
+                    LOGGER.info(
+                        f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
+                    )
 
             else:
                 raise ValueError(
@@ -78,6 +80,29 @@ class DelftaCalculator:
                 )
         return mols
 
+    def _atomtypecheck(self, mols):
+        for idx, mol in enumerate(mols):
+            for atom in mol:
+                if atom.atomicnum not in QMUGS_ATOM_DICT:
+                    raise ValueError(
+                        textwrap.fill(
+                            textwrap.dedent(
+                                f"""
+                                Found not supported atomic no. {atom.atomicnum} at molecule
+                                in position {idx}. This application currently supports only
+                                the atom types used in the QMugs database, namely those with
+                                the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
+                                """
+                            )
+                        )
+                    )
+
+    def _preprocess(self, mols):
+        self._atomtypecheck(mols)
+        mols = self._3dcheck(mols)
+
+        return mols
+
     def _get_preds(self, loader, model):
         y_hats = []
         g_ptrs = []
@@ -90,8 +115,9 @@ class DelftaCalculator:
 
     def _get_xtb_props(self, mols):
         xtb_props = collections.defaultdict(list)
-
-        LOGGER.info("Now running xTB...")
+        
+        if self.verbose:
+            LOGGER.info("Now running xTB...")
         for mol in mols:
             xtb_out = run_xtb_calc(mol)
             for prop, val in xtb_out.items():
@@ -143,7 +169,8 @@ class DelftaCalculator:
         preds = {}
 
         for _, model_name in enumerate(self.models):
-            LOGGER.info(f"Now running network for model {model_name}...")
+            if self.verbose:
+                LOGGER.info(f"Now running network for model {model_name}...")
             model_param = MODEL_HPARAMS[model_name]
             model = EGNN(
                 n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
