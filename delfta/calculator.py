@@ -94,7 +94,7 @@ class DelftaCalculator:
 
 
     def _hydrogencheck(self, mol):
-        atomicnums = set([atom.atomicnum for atom in mol])
+        atomicnums = set([atom.atomicnum for atom in mol.atoms])
         if 1 not in atomicnums:
             if self.addh:
                 mol.addh()
