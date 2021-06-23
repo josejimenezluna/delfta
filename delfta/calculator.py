@@ -1,23 +1,25 @@
 import collections
-import types
 import os
 import pickle
 import textwrap
+import types
 
 import numpy as np
 import torch
 from torch_geometric.data.dataloader import DataLoader
+from tqdm import tqdm
 
 from delfta.download import get_model_weights
 from delfta.net import EGNN
-from delfta.net_utils import MODEL_HPARAMS, MULTITASK_ENDPOINTS, QMUGS_ATOM_DICT, DeltaDataset
+from delfta.net_utils import (MODEL_HPARAMS, MULTITASK_ENDPOINTS,
+                              QMUGS_ATOM_DICT, DeltaDataset)
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
 class DelftaCalculator:
-    def __init__(self, tasks="all", delta=True, force3D=False, verbose=True) -> None:
+    def __init__(self, tasks="all", delta=True, force3D=False, verbose=True, progress=True) -> None:
         if tasks == "all":
             tasks = _ALLTASKS
         self.tasks = tasks
@@ -25,6 +27,7 @@ class DelftaCalculator:
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
         self.force3d = force3D
         self.verbose = verbose
+        self.progress = progress
 
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
@@ -107,6 +110,9 @@ class DelftaCalculator:
         y_hats = []
         g_ptrs = []
 
+        if self.progress:
+            loader = tqdm(loader)
+
         with torch.no_grad():
             for batch in loader:
                 y_hats.append(model(batch).numpy())
@@ -130,6 +136,7 @@ class DelftaCalculator:
     def _predict_batch(self, generator, batch_size):
         preds_batch = []
         done_flag = False
+        done_so_far = 0
 
         while not done_flag:
             mols = []
@@ -137,9 +144,13 @@ class DelftaCalculator:
                 try:
                     mol = next(generator)
                     mols.append(mol)
+                    done_so_far += 1
                 except StopIteration:
                     done_flag = True
                     break
+
+            if self.progress:
+                print(f"Done computing for {done_so_far} molecules...")
         
             preds_batch.append(self.predict(mols, batch_size))
         
