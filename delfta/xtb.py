@@ -60,8 +60,8 @@ def get_homo_and_lumo_energies(data):
     if data["number of unpaired electrons"] != 0:
         raise ValueError("Unpaired electrons are not supported.")
     num_occupied = (
-        np.array(data["fractional occupation"]) != 0
-    ).sum()  # number of occupied orbitals
+        np.array(data["fractional occupation"]) > 1e-6
+    ).sum()  # number of occupied orbitals; accounting for occassional very small values
     E_homo = data["orbital energies/eV"][num_occupied - 1]  # zero-indexing
     E_lumo = data["orbital energies/eV"][num_occupied]
     return E_homo, E_lumo
@@ -122,30 +122,17 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
 
 if __name__ == "__main__":
     import unittest
-
+    import glob
     from delfta.utils import TESTS_PATH
+    from tqdm import tqdm
 
     class TestCase(unittest.TestCase):
+        print("Running tests...")
         def test_compare_to_qmugs(self):
-            sdfs = [
-                "CHEMBL1342110_conf_02.sdf",
-                "CHEMBL1346802_conf_01.sdf",
-                "CHEMBL136619_conf_00.sdf",
-                "CHEMBL2163771_conf_00.sdf",
-                "CHEMBL251439_conf_02.sdf",
-                "CHEMBL3108781_conf_01.sdf",
-                "CHEMBL3287835_conf_00.sdf",
-                "CHEMBL340588_conf_02.sdf",
-                "CHEMBL3641659_conf_00.sdf",
-                "CHEMBL3781981_conf_00.sdf",
-            ]
-
-            sdfs = [os.path.join(TESTS_PATH, sdf) for sdf in sdfs]
-
-            for sdf in sdfs:
-                mol = pybel.readfile("sdf", sdf).__next__()
+            sdfs = glob.glob(os.path.join(TESTS_PATH, "*.sdf"))
+            for sdf in tqdm(sdfs): 
+                mol = next(pybel.readfile("sdf", sdf))
                 props = run_xtb_calc(mol, opt=False)
-
                 self.assertTrue(
                     np.isclose(
                         props["E_form"],
