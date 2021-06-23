@@ -1,4 +1,5 @@
 import collections
+import types
 import os
 import pickle
 import textwrap
@@ -100,8 +101,41 @@ class DelftaCalculator:
     def _inv_scale(self, preds, norm_dict):
         return preds * norm_dict["scale"] + norm_dict["location"]
 
-    def predict(self, mols, batch_size=32):
-        mols = self._preprocess(mols)
+    def _predict_batch(self, generator, batch_size):
+        preds_batch = []
+        done_flag = False
+
+        while not done_flag:
+            mols = []
+            for _ in range(batch_size):
+                try:
+                    mol = next(generator)
+                    mols.append(mol)
+                except StopIteration:
+                    done_flag = True
+                    break
+        
+            preds_batch.append(self.predict(mols, batch_size))
+        
+        pred_keys = preds_batch[0].keys()
+        preds = collections.defaultdict(list)
+        for pred_k in pred_keys:
+            for batch in preds_batch:
+                if pred_k == "charges":
+                    preds[pred_k].extend(batch[pred_k])
+                else:
+                    preds[pred_k].extend(batch[pred_k].tolist())
+            if pred_k != "charges":
+                preds[pred_k] = np.array(preds[pred_k], dtype=np.float32)
+    
+        return dict(preds)
+
+    def predict(self, input_, batch_size=32):
+        if isinstance(input_, list):
+            mols = self._preprocess(input_)
+        
+        elif isinstance(input_, types.GeneratorType):
+            return self._predict_batch(input_, batch_size)
 
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
@@ -168,20 +202,3 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
         return preds_filtered
-
-
-# if __name__ == "__main__":
-#     from openbabel.pybel import readstring, readfile
-
-#     mols = [readstring("smi", "CCO")]
-#     calc = DelftaCalculator(
-#         tasks="all",
-#         delta=True,
-#         force3D=True,
-#     )
-#     preds_delta = calc.predict(mols, batch_size=32)
-
-#     # problematic xtb
-
-#     mols_problematic = [next(readfile("sdf", "/home/hawk31/Downloads/conf_problematic.sdf"))]
-#     preds_delta = calc.predict(mols_problematic, batch_size=32)
