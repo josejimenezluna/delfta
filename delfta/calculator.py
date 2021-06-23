@@ -11,23 +11,39 @@ from tqdm import tqdm
 
 from delfta.download import get_model_weights
 from delfta.net import EGNN
-from delfta.net_utils import (MODEL_HPARAMS, MULTITASK_ENDPOINTS,
-                              QMUGS_ATOM_DICT, DeltaDataset)
+from delfta.net_utils import (
+    MODEL_HPARAMS,
+    MULTITASK_ENDPOINTS,
+    QMUGS_ATOM_DICT,
+    DeltaDataset,
+)
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
 
+
 class DelftaCalculator:
-    def __init__(self, tasks="all", delta=True, force3D=False, verbose=True, progress=True) -> None:
+    def __init__(
+        self,
+        tasks="all",
+        delta=True,
+        force3D=False,
+        addh=False,
+        verbose=True,
+        progress=True,
+        sanity_checks=True,
+    ) -> None:
         if tasks == "all":
             tasks = _ALLTASKS
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
         self.force3d = force3D
+        self.addh = addh
         self.verbose = verbose
         self.progress = progress
+        self.sanity_checks = sanity_checks
 
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
@@ -100,8 +116,34 @@ class DelftaCalculator:
                         )
                     )
 
+    def _hydrogencheck(self, mols):
+        idx_noh = []
+        for idx, mol in enumerate(mols):
+            atomicnums = set([atom.atomicnum for atom in mol])
+            if 1 not in atomicnums:
+                idx_noh.append(idx)
+                if self.addh:
+                    mol.addh()
+
+        if idx_noh:
+            if self.verbose:
+                LOGGER.info(f"Protonated molecules with idx. {idx_noh}")
+            else:
+                raise ValueError(
+                    textwrap.fill(
+                        textwrap.dedent(
+                            f"""
+                            Molecules at position {idx_noh} do not contain hydrogens.
+                            Either provide a correctly protonated mol or re-run calculator with `addh=True`.
+                            """
+                        )
+                    )
+                )
+        return mols
+
     def _preprocess(self, mols):
         self._atomtypecheck(mols)
+        mols = self._hydrogencheck(mols)
         mols = self._3dcheck(mols)
 
         return mols
@@ -121,7 +163,7 @@ class DelftaCalculator:
 
     def _get_xtb_props(self, mols):
         xtb_props = collections.defaultdict(list)
-        
+
         if self.verbose:
             LOGGER.info("Now running xTB...")
         for mol in mols:
@@ -151,9 +193,9 @@ class DelftaCalculator:
 
             if self.progress:
                 print(f"Done computing for {done_so_far} molecules...")
-        
+
             preds_batch.append(self.predict(mols, batch_size))
-        
+
         pred_keys = preds_batch[0].keys()
         preds = collections.defaultdict(list)
         for pred_k in pred_keys:
@@ -164,13 +206,14 @@ class DelftaCalculator:
                     preds[pred_k].extend(batch[pred_k].tolist())
             if pred_k != "charges":
                 preds[pred_k] = np.array(preds[pred_k], dtype=np.float32)
-    
+
         return dict(preds)
 
     def predict(self, input_, batch_size=32):
         if isinstance(input_, list):
-            mols = self._preprocess(input_)
-        
+            if self.sanity_checks:
+                mols = self._preprocess(input_)
+
         elif isinstance(input_, types.GeneratorType):
             return self._predict_batch(input_, batch_size)
 
@@ -235,7 +278,7 @@ class DelftaCalculator:
                         d_arr + np.array(xtb_arr)
                         for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
                     ]
-                else: 
+                else:
                     preds_filtered[prop] = delta_arr + np.array(
                         xtb_props[prop], dtype=np.float32
                     )
