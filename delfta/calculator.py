@@ -163,9 +163,10 @@ class DelftaCalculator:
                         d_arr + np.array(xtb_arr)
                         for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
                     ]
-                preds_filtered[prop] = delta_arr + np.array(
-                    xtb_props[prop], dtype=np.float32
-                )
+                else: 
+                    preds_filtered[prop] = delta_arr + np.array(
+                        xtb_props[prop], dtype=np.float32
+                    )
         return preds_filtered
 
 
