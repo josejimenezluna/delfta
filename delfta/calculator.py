@@ -99,18 +99,31 @@ class DelftaCalculator:
                 )
         return mols
 
-    def _atomtypecheck(self, mols):
+    def _atomtypeandchargecheck(self, mols):
         for idx, mol in enumerate(mols):
-            for atom in mol:
+            for atom in mol.atoms:
                 if atom.atomicnum not in QMUGS_ATOM_DICT:
                     raise ValueError(
                         textwrap.fill(
                             textwrap.dedent(
                                 f"""
                                 Found not supported atomic no. {atom.atomicnum} at molecule
-                                in position {idx}. This application currently supports only
+                                at position {idx}. This application currently supports only
                                 the atom types used in the QMugs database, namely those with
                                 the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
+                                """
+                            )
+                        )
+                    )
+                
+                if atom.formalcharge != 0:
+                    raise ValueError(
+                        textwrap.fill(
+                            textwrap.dedent(
+                                f"""
+                                Found a molecule with a non-zero atomic formal charge at 
+                                position {idx}. This application currently does not support
+                                prediction for charged molecules.
                                 """
                             )
                         )
@@ -142,7 +155,7 @@ class DelftaCalculator:
         return mols
 
     def _preprocess(self, mols):
-        self._atomtypecheck(mols)
+        self._atomtypeandchargecheck(mols)
         mols = self._hydrogencheck(mols)
         mols = self._3dcheck(mols)
 
