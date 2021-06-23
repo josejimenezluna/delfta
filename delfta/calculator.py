@@ -72,18 +72,65 @@ class DelftaCalculator:
 
         self.models = list(set(self.models))
 
-    def _3dcheck(self, mols):
-        idx_no3D = []
+    def _3dcheck(self, mol):
+        if mol.dim != 3:
+            if self.force3d:
+                mol.make3D()
+            return False
+        return True
+
+
+    def _atomtypecheck(self, mol):
+        for atom in mol.atoms:
+            if atom.atomicnum not in QMUGS_ATOM_DICT:
+                return False
+        return True
+    
+    def _chargecheck(self, mol):      
+        if mol.charge != 0:
+            return True
+        else:
+            return False
+
+
+    def _hydrogencheck(self, mol):
+        atomicnums = set([atom.atomicnum for atom in mol])
+        if 1 not in atomicnums:
+            if self.addh:
+                mol.addh()
+            return False
+        else:
+            return True
+
+
+    def _preprocess(self, mols):
+        idx_no3d = []
+        idx_non_valid_atypes = []
+        idx_charged = []
+        idx_noh = []
+
         for idx, mol in enumerate(mols):
-            if mol.dim != 3:
-                idx_no3D.append(idx)
-                if self.force3d:
-                    mol.make3D()
-        if idx_no3D:
+            has_3d = self._3dcheck(mol)
+            if not has_3d:
+                idx_no3d.append(idx)
+
+            is_atype_valid = self._atomtypecheck(mol)
+            if not is_atype_valid:
+                idx_non_valid_atypes.append(idx)
+            
+            is_charged = self._chargecheck(mol)
+            if is_charged:
+                idx_charged.append(idx)
+            
+            has_h = self._hydrogencheck(mol)
+            if not has_h:
+                idx_noh.append(idx)
+
+        if idx_no3d:
             if self.force3d:
                 if self.verbose:
                     LOGGER.info(
-                        f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3D}"
+                        f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3d}"
                     )
 
             else:
@@ -91,73 +138,55 @@ class DelftaCalculator:
                     textwrap.fill(
                         textwrap.dedent(
                             f"""
-                Molecules at position {idx_no3D} have no 3D conformations available.
+                Molecules at position {idx_no3d} have no 3D conformations available.
                 Either provide a mol with one or re-run calculator with `force3D=True`.
                 """
                         )
                     )
                 )
-        return mols
 
-    def _atomtypeandchargecheck(self, mols):
-        for idx, mol in enumerate(mols):
-            for atom in mol.atoms:
-                if atom.atomicnum not in QMUGS_ATOM_DICT:
-                    raise ValueError(
-                        textwrap.fill(
-                            textwrap.dedent(
-                                f"""
-                                Found not supported atomic no. {atom.atomicnum} at molecule
-                                at position {idx}. This application currently supports only
-                                the atom types used in the QMugs database, namely those with
-                                the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
-                                """
-                            )
+        if idx_non_valid_atypes:
+            raise ValueError(
+                    textwrap.fill(
+                        textwrap.dedent(
+                            f"""
+                            Found non-supported atomic no. in molecules
+                            at position {idx_non_valid_atypes}. This application currently supports only
+                            the atom types used in the QMugs database, namely those with
+                            the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
+                            """
                         )
                     )
-                
-                if atom.formalcharge != 0:
-                    raise ValueError(
-                        textwrap.fill(
-                            textwrap.dedent(
-                                f"""
-                                Found a molecule with a non-zero atomic formal charge at 
-                                position {idx}. This application currently does not support
-                                prediction for charged molecules.
-                                """
-                            )
-                        )
+                )
+        if idx_charged:
+            raise ValueError(
+                textwrap.fill(
+                    textwrap.dedent(
+                        f"""
+                        Found molecules with a non-zero atomic formal charge at 
+                        positions {idx_charged}. This application currently does not support
+                        prediction for charged molecules.
+                        """
                     )
-
-    def _hydrogencheck(self, mols):
-        idx_noh = []
-        for idx, mol in enumerate(mols):
-            atomicnums = set([atom.atomicnum for atom in mol])
-            if 1 not in atomicnums:
-                idx_noh.append(idx)
-                if self.addh:
-                    mol.addh()
+                )
+                )
 
         if idx_noh:
-            if self.verbose:
-                LOGGER.info(f"Protonated molecules with idx. {idx_noh}")
+            if self.addh:
+                LOGGER.info(
+                    f"Added hydrogens for non-protonated molecules at position {idx_noh}"
+                )
             else:
                 raise ValueError(
                     textwrap.fill(
                         textwrap.dedent(
                             f"""
-                            Molecules at position {idx_noh} do not contain hydrogens.
-                            Either provide a correctly protonated mol or re-run calculator with `addh=True`.
+                            No hydrogens present for molecules at position {idx_noh}. Please add
+                            them manually or re-run the calculator with argument `addh=True`.
                             """
                         )
                     )
                 )
-        return mols
-
-    def _preprocess(self, mols):
-        self._atomtypeandchargecheck(mols)
-        mols = self._hydrogencheck(mols)
-        mols = self._3dcheck(mols)
 
         return mols
 
