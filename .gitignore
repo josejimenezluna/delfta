@@ -1,12 +1,12 @@
 # Project-specifics
 xtb/
-tutorials/
 models/
 data/
-data/test_data
 *.json
 *.pyc
 *.tar.gz
+.vscode/
+notebooks/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

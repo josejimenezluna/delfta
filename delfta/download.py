@@ -130,7 +130,7 @@ if __name__ == "__main__":
 
     # tests
     LOGGER.info("Downloading tests...")
-    tests_tar = os.path.join(DATA_PATH, "tests.tar.gz")
+    tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
     download(TESTS_REMOTE, tests_tar)
 
     with tarfile.open(tests_tar) as handle:

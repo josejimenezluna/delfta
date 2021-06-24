@@ -20,15 +20,21 @@ XTB_INPUT_FILE = os.path.join(UTILS_PATH, "xtb.inp")
 
 
 def read_xtb_json(json_file, mol):
-    """Reads JSON output file from xTB
+    """Reads JSON output file from xTB.
 
-    Args:
-        json_file (str): path to output file
-        mol (pybol Mol): molecule object, needed to compute atomic energy
+    Parameters
+    ----------
+    json_file : str
+        path to output file
+    mol : pybel molecule object
+        molecule object, needed to compute atomic energy
 
-    Returns:
-        dict: dictionary of xTB properties
+    Returns
+    -------
+    dict
+        dictionary of xTB properties
     """
+
     with open(json_file, "r") as f:
         data = json.load(f)
     E_homo, E_lumo = get_homo_and_lumo_energies(data)
@@ -48,40 +54,54 @@ def read_xtb_json(json_file, mol):
 def get_homo_and_lumo_energies(data):
     """Extracts HOMO and LUMO energies.
 
-    Args:
-        data (dict): dictionary from xTB JSON output
+    Parameters
+    ----------
+    data : dict
+        dictionary from xTB JSON output
 
-    Raises:
-        ValueError: In case of unpaired electrons.
+    Returns
+    -------
+    tuple(float)
+        HOMO/LUMO energies in eV
 
-    Returns:
-        tuple(float): HOMO/LUMO energies in eV
+    Raises
+    ------
+    ValueError
+        in case of unpaired electrons (not supported)
     """
     if data["number of unpaired electrons"] != 0:
         raise ValueError("Unpaired electrons are not supported.")
     num_occupied = (
-        np.array(data["fractional occupation"]) != 0
-    ).sum()  # number of occupied orbitals
+        np.array(data["fractional occupation"]) > 1e-6
+    ).sum()  # number of occupied orbitals; accounting for occassional very small values
     E_homo = data["orbital energies/eV"][num_occupied - 1]  # zero-indexing
     E_lumo = data["orbital energies/eV"][num_occupied]
     return E_homo, E_lumo
 
 
 def run_xtb_calc(mol, opt=False, return_optmol=False):
-    """Runs xtb single-point calculation with optional geometry optimization.
+    """Runs xT single-point calculation with optional geometry optimization.
 
-    Args:
-        mol (openbabel.pybel.Molecule): An OpenBabel molecule instance. Assumes hydrogens. 
-        opt (bool, optional): Whether to optimize the geometry. Defaults to False.
+    Parameters
+    ----------
+    mol : pybel molecule object
+        assumes hydrogens are present
+    opt : bool, optional
+        Whether to optimize the geometry, by default False
+    return_optmol : bool, optional
+        Whether to return the optimized molecule, in case optimization was requested, by default False
 
-    Raises:
-        ValueError: If the xTB calculation throws a non-zero return code.
+    Returns
+    -------
+    dict
+        Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies, dipole, atomic charges)
 
-    Returns:
-        dict: Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies,
-              dipole, atomic charges)
-        opt_mol (openbabel.pybel.Molecule, optional): An GFN2-xTB-optimized OpenBabel molecule instance. 
+    Raises
+    ------
+    ValueError
+        If xTB calculation yield a non-zero return code.
     """
+
     if return_optmol and not opt:
         LOGGER.info(
             "Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now."
@@ -107,7 +127,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         )
 
     if xtb_run.returncode != 0:
-        error_out = os.path.join(temp_dir.name, "xtb_error.log")
+        error_out = os.path.join(temp_dir.name, "xtb.log")
         raise ValueError(f"xTB calculation failed. See {error_out} for details.")
 
     else:
@@ -122,30 +142,17 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
 
 if __name__ == "__main__":
     import unittest
-
+    import glob
     from delfta.utils import TESTS_PATH
+    from tqdm import tqdm
 
     class TestCase(unittest.TestCase):
+        print("Running tests...")
         def test_compare_to_qmugs(self):
-            sdfs = [
-                "CHEMBL1342110_conf_02.sdf",
-                "CHEMBL1346802_conf_01.sdf",
-                "CHEMBL136619_conf_00.sdf",
-                "CHEMBL2163771_conf_00.sdf",
-                "CHEMBL251439_conf_02.sdf",
-                "CHEMBL3108781_conf_01.sdf",
-                "CHEMBL3287835_conf_00.sdf",
-                "CHEMBL340588_conf_02.sdf",
-                "CHEMBL3641659_conf_00.sdf",
-                "CHEMBL3781981_conf_00.sdf",
-            ]
-
-            sdfs = [os.path.join(TESTS_PATH, sdf) for sdf in sdfs]
-
-            for sdf in sdfs:
-                mol = pybel.readfile("sdf", sdf).__next__()
+            sdfs = glob.glob(os.path.join(TESTS_PATH, "*.sdf"))
+            for sdf in tqdm(sdfs): 
+                mol = next(pybel.readfile("sdf", sdf))
                 props = run_xtb_calc(mol, opt=False)
-
                 self.assertTrue(
                     np.isclose(
                         props["E_form"],
