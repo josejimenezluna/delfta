@@ -35,6 +35,30 @@ class DelftaCalculator:
         progress=True,
         sanity_checks=True,
     ) -> None:
+        """Main calculator class for predicting DFT observables.
+
+        Parameters
+        ----------
+        tasks : str, optional
+            A list of tasks to predict. Available tasks include
+            `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default "all".
+        delta : bool, optional
+            Whether to use delta-learning models, by default True
+        force3D : bool, optional
+            Whether to assign 3d coordinates to molecules lacking them, by default False
+        addh : bool, optional
+            Whether to add hydrogens to molecules lacking them, by default False
+        xtbopt : bool, optional
+            Whether to perform GFN2-xTB geometry optimization, by default False
+        verbose : bool, optional
+            Enables/disables stdout logger, by default True
+        progress : bool, optional
+            Enables/disables progress bars in prediction, by default True
+        sanity_checks : bool, optional
+            Enables/disables sanity checks before prediction, including
+            atom type validation, charge neutrality, hydrogen addition and
+            3d conformer generation, by default True
+        """
         if tasks == "all":
             tasks = _ALLTASKS
         self.tasks = tasks
