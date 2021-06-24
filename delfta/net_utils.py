@@ -3,7 +3,7 @@ from collections import namedtuple
 import networkx as nx
 import numpy as np
 import torch
-from torch_geometric.data import Data, DataLoader, Dataset
+from torch_geometric.data import Data, Dataset
 from torch_geometric.utils import add_self_loops
 from torch_geometric.utils.undirected import to_undirected
 

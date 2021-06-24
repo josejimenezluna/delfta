@@ -30,6 +30,7 @@ class DelftaCalculator:
         delta=True,
         force3D=False,
         addh=False,
+        xtbopt=False,
         verbose=True,
         progress=True,
         sanity_checks=True,
@@ -41,6 +42,7 @@ class DelftaCalculator:
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
         self.force3d = force3D
         self.addh = addh
+        self.xtbopt = xtbopt
         self.verbose = verbose
         self.progress = progress
         self.sanity_checks = sanity_checks
@@ -73,6 +75,21 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _3dcheck(self, mol):
+        """Checks whether `mol` has 3d coordinates assigned. If
+        `self.force3d=True` these will be computed for
+        those lacking them using the MMFF94 force-field as
+        available on pybel.
+
+        Parameters
+        ----------
+        mol : pybel.Molecule
+            An OEChem molecule object
+
+        Returns
+        -------
+        bool
+            `True` if `mol` has a 3d conformation, `False` otherwise.
+        """
         if mol.dim != 3:
             if self.force3d:
                 mol.make3D()
@@ -81,12 +98,37 @@ class DelftaCalculator:
 
 
     def _atomtypecheck(self, mol):
+        """Checks whether the atom types in `mol` are supported
+        by the QMugs database
+
+        Parameters
+        ----------
+        mol : pybel.Molecule
+            An OEChem molecule object
+
+        Returns
+        -------
+        bool
+            `True` if all atoms have valid atom types, `False` otherwise. 
+        """
         for atom in mol.atoms:
             if atom.atomicnum not in QMUGS_ATOM_DICT:
                 return False
         return True
     
-    def _chargecheck(self, mol):      
+    def _chargecheck(self, mol):
+        """Checks whether the overall charge on `mol` is neutral.
+
+        Parameters
+        ----------
+        mol : pybel.Molecule
+            An OEChem molecule object
+
+        Returns
+        -------
+        bool
+            `True` is overall `mol` charge is 0, `False` otherwise.
+        """
         if mol.charge != 0:
             return True
         else:
@@ -94,6 +136,19 @@ class DelftaCalculator:
 
 
     def _hydrogencheck(self, mol):
+        """Checks whether `mol` has assigned hydrogens. If `self.addh=True`
+        these will be added if lacking.
+
+        Parameters
+        ----------
+        mol : pybel.Molecule
+            An OEChem molecule object
+
+        Returns
+        -------
+        bool
+            Whether `mol` has assigned hydrogens.
+        """
         atomicnums = set([atom.atomicnum for atom in mol.atoms])
         if 1 not in atomicnums:
             if self.addh:
@@ -104,6 +159,21 @@ class DelftaCalculator:
 
 
     def _preprocess(self, mols):
+        """Performs a series of preprocessing checks on a list of molecules `mols`,
+        including 3d-conformation existence, validity of atom types, neutral charge
+        and hydrogen addition.
+
+        Parameters
+        ----------
+        mols: [pybel.Molecule]
+            A list of OEChem molecule objects
+
+        Returns
+        -------
+        [pybel.Molecule]
+            A list of processed OEChem molecule objects
+        
+        """
         idx_no3d = []
         idx_non_valid_atypes = []
         idx_charged = []
@@ -191,6 +261,24 @@ class DelftaCalculator:
         return mols
 
     def _get_preds(self, loader, model):
+        """Returns predictions for the data contained in `loader` of a
+        pyTorch `model`.
+        
+
+        Parameters
+        ----------
+        loader : delfta.net_utils.DeltaDataset
+            A `delfta.net_utils.DeltaDataset` instance.
+        model : delfta.net.EGNN
+            A `delfta.net.EGNN` instance.
+
+        Returns
+        -------
+        numpy.ndarray
+            Model predictions.
+        numpy.ndarray
+            Graph-specific indexes for node-level predictions.
+        """
         y_hats = []
         g_ptrs = []
 
@@ -204,20 +292,65 @@ class DelftaCalculator:
         return y_hats, g_ptrs
 
     def _get_xtb_props(self, mols):
+        """Runs the GFN2-xTB binary and returns observables
+
+        Parameters
+        ----------
+        mols : [pybel.Molecule]
+            A list of OEChem molecule instances.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the requested properties for
+            `mols`.
+        """
         xtb_props = collections.defaultdict(list)
 
         if self.verbose:
             LOGGER.info("Now running xTB...")
         for mol in mols:
-            xtb_out = run_xtb_calc(mol)
+            xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
             for prop, val in xtb_out.items():
                 xtb_props[prop].append(val)
         return xtb_props
 
     def _inv_scale(self, preds, norm_dict):
+        """Inverse min-max scaling transformation
+
+        Parameters
+        ----------
+        preds : np.ndarray
+            Normalized predictions
+        norm_dict : dict
+            A dictionary containing scale and location values for
+            inverse normalization.
+
+        Returns
+        -------
+        numpy.ndarray
+            Unnormalized predictions in their original scale
+            and location.
+        """
         return preds * norm_dict["scale"] + norm_dict["location"]
 
     def _predict_batch(self, generator, batch_size):
+        """Utility method for prediction using OEChem generators
+        (e.g. those used for reading sdf or xyz files)
+
+        Parameters
+        ----------
+        generator : pybel.filereader
+            A pybel.filereader instance
+        batch_size : int
+            Batch size used for prediction. Defaults to the same one
+            used under `self.predict`.
+
+        Returns
+        -------
+        dict
+            Requested DFT-predicted properties.
+        """
         preds_batch = []
         done_flag = False
         done_so_far = 0
@@ -252,6 +385,20 @@ class DelftaCalculator:
         return dict(preds)
 
     def predict(self, input_, batch_size=32):
+        """Main prediction method for DFT observables.
+
+        Parameters
+        ----------
+        input_ : None
+            Either a list of OEChem Molecule instances or a pybel filereader generator instance.
+        batch_size : int, optional
+            Batch size used for prediction, by default 32
+
+        Returns
+        -------
+        dict
+            Requested DFT-predicted properties.
+        """
         if isinstance(input_, list):
             if self.sanity_checks:
                 mols = self._preprocess(input_)
