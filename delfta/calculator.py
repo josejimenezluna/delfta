@@ -28,7 +28,7 @@ class DelftaCalculator:
         self,
         tasks="all",
         delta=True,
-        force3D=False,
+        force3d=False,
         addh=False,
         xtbopt=False,
         verbose=True,
@@ -44,8 +44,8 @@ class DelftaCalculator:
             `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default "all".
         delta : bool, optional
             Whether to use delta-learning models, by default True
-        force3D : bool, optional
-            Whether to assign 3d coordinates to molecules lacking them, by default False
+        force3d : bool, optional
+            Whether to assign 3D coordinates to molecules lacking them, by default False
         addh : bool, optional
             Whether to add hydrogens to molecules lacking them, by default False
         xtbopt : bool, optional
@@ -57,14 +57,14 @@ class DelftaCalculator:
         sanity_checks : bool, optional
             Enables/disables sanity checks before prediction, including
             atom type validation, charge neutrality, hydrogen addition and
-            3d conformer generation, by default True
+            3D conformer generation, by default True
         """
-        if tasks == "all":
+        if tasks == "all" or tasks == ["all"]:
             tasks = _ALLTASKS
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
-        self.force3d = force3D
+        self.force3d = force3d
         self.addh = addh
         self.xtbopt = xtbopt
         self.verbose = verbose
@@ -120,7 +120,6 @@ class DelftaCalculator:
             return False
         return True
 
-
     def _atomtypecheck(self, mol):
         """Checks whether the atom types in `mol` are supported
         by the QMugs database
@@ -139,7 +138,7 @@ class DelftaCalculator:
             if atom.atomicnum not in QMUGS_ATOM_DICT:
                 return False
         return True
-    
+
     def _chargecheck(self, mol):
         """Checks whether the overall charge on `mol` is neutral.
 
@@ -157,7 +156,6 @@ class DelftaCalculator:
             return True
         else:
             return False
-
 
     def _hydrogencheck(self, mol):
         """Checks whether `mol` has assigned hydrogens. If `self.addh=True`
@@ -180,7 +178,6 @@ class DelftaCalculator:
             return False
         else:
             return True
-
 
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
@@ -211,11 +208,11 @@ class DelftaCalculator:
             is_atype_valid = self._atomtypecheck(mol)
             if not is_atype_valid:
                 idx_non_valid_atypes.append(idx)
-            
+
             is_charged = self._chargecheck(mol)
             if is_charged:
                 idx_charged.append(idx)
-            
+
             has_h = self._hydrogencheck(mol)
             if not has_h:
                 idx_noh.append(idx)
@@ -241,17 +238,17 @@ class DelftaCalculator:
 
         if idx_non_valid_atypes:
             raise ValueError(
-                    textwrap.fill(
-                        textwrap.dedent(
-                            f"""
+                textwrap.fill(
+                    textwrap.dedent(
+                        f"""
                             Found non-supported atomic no. in molecules
                             at position {idx_non_valid_atypes}. This application currently supports only
                             the atom types used in the QMugs database, namely those with
                             the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
                             """
-                        )
                     )
                 )
+            )
         if idx_charged:
             raise ValueError(
                 textwrap.fill(
@@ -263,7 +260,7 @@ class DelftaCalculator:
                         """
                     )
                 )
-                )
+            )
 
         if idx_noh:
             if self.addh:
@@ -434,6 +431,11 @@ class DelftaCalculator:
 
         elif isinstance(input_, types.GeneratorType):
             return self._predict_batch(input_, batch_size)
+
+        else:
+            raise ValueError(
+                f"Invalid input. Expected list or generator, but got {type(input_)}."
+            )
 
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
