@@ -3,6 +3,7 @@ import os
 import pickle
 import textwrap
 import types
+from typing import ValuesView
 
 import numpy as np
 import torch
@@ -17,6 +18,7 @@ from delfta.net_utils import (
     QMUGS_ATOM_DICT,
     DeltaDataset,
 )
+import openbabel
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
@@ -33,7 +35,6 @@ class DelftaCalculator:
         xtbopt=False,
         verbose=True,
         progress=True,
-        sanity_checks=True,
     ) -> None:
         """Main calculator class for predicting DFT observables.
 
@@ -54,10 +55,6 @@ class DelftaCalculator:
             Enables/disables stdout logger, by default True
         progress : bool, optional
             Enables/disables progress bars in prediction, by default True
-        sanity_checks : bool, optional
-            Enables/disables sanity checks before prediction, including
-            atom type validation, charge neutrality, hydrogen addition and
-            3D conformer generation, by default True
         """
         if tasks == "all" or tasks == ["all"]:
             tasks = _ALLTASKS
@@ -69,7 +66,6 @@ class DelftaCalculator:
         self.xtbopt = xtbopt
         self.verbose = verbose
         self.progress = progress
-        self.sanity_checks = sanity_checks
 
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
@@ -179,6 +175,16 @@ class DelftaCalculator:
         else:
             return True
 
+    def _validate_mols(self, mols):
+        if len(mols) == 0:
+            raise ValueError("No molecules provided.")
+        correct_types = [isinstance(mol, openbabel.pybel.Molecule) for mol in mols]
+        not_empty = [len(mol.atoms) > 0 for mol in mols]
+        valid = [(a and b) for a, b in zip(correct_types, not_empty)]
+        if not all(valid):
+            idx = [i for i, elem in enumerate(valid) if not elem]
+            raise ValueError(f"Invalid molecules at idx {idx}.")
+
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
         including 3d-conformation existence, validity of atom types, neutral charge
@@ -195,6 +201,7 @@ class DelftaCalculator:
             A list of processed OEChem molecule objects
         
         """
+        self._validate_mols(mols)
         idx_no3d = []
         idx_non_valid_atypes = []
         idx_charged = []
@@ -330,7 +337,7 @@ class DelftaCalculator:
 
         if self.verbose:
             LOGGER.info("Now running xTB...")
-        
+
         if self.progress:
             mol_progress = tqdm(mols)
         else:
@@ -426,8 +433,7 @@ class DelftaCalculator:
             Requested DFT-predicted properties.
         """
         if isinstance(input_, list):
-            if self.sanity_checks:
-                mols = self._preprocess(input_)
+            mols = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
             return self._predict_batch(input_, batch_size)
@@ -503,3 +509,16 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
         return preds_filtered
+
+
+if __name__ == "__main__":
+    import glob
+    from delfta.utils import DATA_PATH
+    from openbabel.pybel import readfile
+
+    mol_files = glob.glob(os.path.join(DATA_PATH, "test_data", "example_files_1.sdf"))
+    mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+    calc_delta = DelftaCalculator()
+    # Verbose passing of arguments. We could've used "all" as well
+    predictions_delta = calc_delta.predict(mols, batch_size=32)
+    a = 2
