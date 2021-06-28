@@ -6,7 +6,6 @@ import types
 
 import numpy as np
 import torch
-from torch._C import Value
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
 
