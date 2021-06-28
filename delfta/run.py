@@ -19,10 +19,8 @@ if __name__ == "__main__":
     parser.add_argument("--outfile", type=str, default="_default_")
     parser.add_argument("--delta", type=bool, default=True)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument(
-        "--force3d", type=bool, default=False
-    )  # TODO -> change default?
-    parser.add_argument("--addh", type=bool, default=False)  # TODO -> change default?
+    parser.add_argument("--force3d", type=bool, default=True)
+    parser.add_argument("--addh", type=bool, default=True)
     parser.add_argument("--xtbopt", type=bool, default=False)
     parser.add_argument("--verbose", type=bool, default=True)
     parser.add_argument("--progress", type=bool, default=True)
