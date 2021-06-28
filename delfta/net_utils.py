@@ -40,6 +40,13 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class DeltaDataset(Dataset):
     def __init__(self, mols):
+        """Base Dataset class for delfta
+
+        Parameters
+        ----------
+        mols : [pybel.Molecule]
+            A list of `pybel.Molecule` instances.
+        """
         self.mols = mols
 
     def __getitem__(self, idx):

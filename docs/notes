@@ -1,0 +1,1 @@
+sphinx-apidoc -f -o . ../delfta/ --tocfile index --separate --private

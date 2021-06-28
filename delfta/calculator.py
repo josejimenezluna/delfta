@@ -330,7 +330,12 @@ class DelftaCalculator:
 
         if self.verbose:
             LOGGER.info("Now running xTB...")
-        for mol in mols:
+        
+        if self.progress:
+            mol_progress = tqdm(mols)
+        else:
+            mol_progress = mols
+        for mol in mol_progress:
             xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
             for prop, val in xtb_out.items():
                 xtb_props[prop].append(val)
