@@ -1,5 +1,6 @@
 import os
 import logging
+import numpy as np
 
 # Path handling shortcuts
 
@@ -65,3 +66,24 @@ logging.basicConfig(
     datefmt="%Y/%m/%d %I:%M:%S %p",
 )
 LOGGER = logging.getLogger("DelFTa")
+
+
+def preds_to_lists(preds):
+    preds_list = {}
+    for key, val in preds.items():
+        if isinstance(val, list):
+            preds_list[key] = [elem.tolist() for elem in val]
+        elif isinstance(val, np.ndarray):
+            preds_list[key] = val.tolist()
+    return preds_list
+
+
+column_order = {
+    "E_form": 0,
+    "E_homo": 1,
+    "E_lumo": 2,
+    "E_gap": 3,
+    "dipole": 4,
+    "charges": 5,
+}
+
