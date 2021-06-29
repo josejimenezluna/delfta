@@ -238,7 +238,7 @@ class DelftaCalculator:
             if self.force3d:
                 if self.verbose:
                     LOGGER.info(
-                        f"Assigned MMFF94 coordinates to molecules with idx. {idx_no3d}"
+                        f"Assigned MMFF94 coordinates and added hydrogens to molecules with idx. {idx_no3d}"
                     )
 
             else:
@@ -280,7 +280,7 @@ class DelftaCalculator:
             )
 
         if idx_noh:
-            if self.addh:
+            if self.addh and not self.force3d:
                 LOGGER.info(
                     f"Added hydrogens for non-protonated molecules at position {idx_noh}"
                 )
