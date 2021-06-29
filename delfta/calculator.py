@@ -5,6 +5,7 @@ import textwrap
 import types
 
 import numpy as np
+import openbabel
 import torch
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
@@ -17,7 +18,6 @@ from delfta.net_utils import (
     QMUGS_ATOM_DICT,
     DeltaDataset,
 )
-import openbabel
 from delfta.utils import LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
@@ -166,13 +166,16 @@ class DelftaCalculator:
         bool
             Whether `mol` has assigned hydrogens.
         """
-        atomicnums = set([atom.atomicnum for atom in mol.atoms])
-        if 1 not in atomicnums:
-            if self.addh:
-                mol.addh()
-            return False
-        else:
+        nh_mol = sum([True for atom in mol.atoms if atom.atomicnum == 1])
+        mol_cpy = mol.clone
+        mol_cpy.removeh()
+        mol_cpy.addh()
+        nh_cpy = sum([True for atom in mol.atoms if atom.atomicnum == 1])
+
+        if nh_mol == nh_cpy:
             return True
+        else:
+            return False
 
     def _validate_mols(self, mols):
         if len(mols) == 0:
@@ -184,12 +187,13 @@ class DelftaCalculator:
 
             if not all(has_atoms):
                 idx_no_atoms = [idx for idx, item in enumerate(has_atoms) if not item]
-                raise ValueError(f"Found empty Molecule objects at idxs. {idx_no_atoms}")
+                raise ValueError(
+                    f"Found empty Molecule objects at idxs. {idx_no_atoms}"
+                )
 
         else:
             idx_non_mol = [idx for idx, item in enumerate(is_mol) if not item]
             raise ValueError(f"Found non Molecule objects at idxs. {idx_non_mol}")
-
 
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
