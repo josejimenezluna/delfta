@@ -3,7 +3,6 @@ import os
 import pickle
 import textwrap
 import types
-from typing import ValuesView
 
 import numpy as np
 import torch
@@ -178,12 +177,19 @@ class DelftaCalculator:
     def _validate_mols(self, mols):
         if len(mols) == 0:
             raise ValueError("No molecules provided.")
-        correct_types = [isinstance(mol, openbabel.pybel.Molecule) for mol in mols]
-        not_empty = [len(mol.atoms) > 0 for mol in mols]
-        valid = [(a and b) for a, b in zip(correct_types, not_empty)]
-        if not all(valid):
-            idx = [i for i, elem in enumerate(valid) if not elem]
-            raise ValueError(f"Invalid molecules at idx {idx}.")
+
+        is_mol = [isinstance(mol, openbabel.pybel.Molecule) for mol in mols]
+        if all(is_mol):
+            has_atoms = [len(mol.atoms) > 0 for mol in mols]
+
+            if not all(has_atoms):
+                idx_no_atoms = [idx for idx, item in enumerate(has_atoms) if not item]
+                raise ValueError(f"Found empty Molecule objects at idxs. {idx_no_atoms}")
+
+        else:
+            idx_non_mol = [idx for idx, item in enumerate(is_mol) if not item]
+            raise ValueError(f"Found non Molecule objects at idxs. {idx_non_mol}")
+
 
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
@@ -509,16 +515,3 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
         return preds_filtered
-
-
-if __name__ == "__main__":
-    import glob
-    from delfta.utils import DATA_PATH
-    from openbabel.pybel import readfile
-
-    mol_files = glob.glob(os.path.join(DATA_PATH, "test_data", "example_files_1.sdf"))
-    mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
-    calc_delta = DelftaCalculator()
-    # Verbose passing of arguments. We could've used "all" as well
-    predictions_delta = calc_delta.predict(mols, batch_size=32)
-    a = 2
