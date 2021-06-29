@@ -170,7 +170,7 @@ class DelftaCalculator:
         mol_cpy = mol.clone
         mol_cpy.removeh()
         mol_cpy.addh()
-        nh_cpy = sum([True for atom in mol.atoms if atom.atomicnum == 1])
+        nh_cpy = sum([True for atom in mol_cpy.atoms if atom.atomicnum == 1])
 
         if nh_mol == nh_cpy:
             return True
