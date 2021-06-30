@@ -574,15 +574,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--force3d",
         type=bool,
-        default=False,
-        help="Whether to assign 3D coordinates to molecules lacking them, by default False",
+        default=True,
+        help="Whether to assign 3D coordinates to molecules lacking them, by default True",
     )
     parser.add_argument(
         "--addh",
         type=bool,
-        default=False,
-        help="Whether to add hydrogens to molecules lacking them, by default False",
-    )  # TODO -> change default?
+        default=True,
+        help="Whether to add hydrogens to molecules lacking them, by default True",
+    )
     parser.add_argument(
         "--xtbopt",
         type=bool,
