@@ -178,6 +178,15 @@ class DelftaCalculator:
             return False
 
     def _validate_mols(self, mols):
+        """Checks whether the list provided contains OEChem molecule object
+        instances and that they are not empty.
+
+        Parameters
+        ----------
+        mols : list
+            A list of OEChem mols.
+
+        """
         if len(mols) == 0:
             raise ValueError("No molecules provided.")
 
@@ -442,7 +451,10 @@ class DelftaCalculator:
         dict
             Requested DFT-predicted properties.
         """
-        if isinstance(input_, list):
+        if isinstance(input_, openbabel.pybel.Molecule):
+            return self.predict([input_])
+
+        elif isinstance(input_, list):
             mols = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
