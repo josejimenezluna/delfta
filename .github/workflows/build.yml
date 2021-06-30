@@ -24,10 +24,10 @@ jobs:
           pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-1.8.0+cu102.html
           pip install torch-geometric
           pip install pytest
-      - name: download files
+        name: download files
       - run: |
           python delfta/download.py
-      - name: test
+        name: test
       - run: |
           pytest
       
