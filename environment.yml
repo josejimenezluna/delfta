@@ -1,7 +1,8 @@
-name: delfta
+name: delftanew
 channels:
   - pytorch
   - defaults
+  - rusty1s
   - conda-forge
 dependencies:
   - joblib=1.0.1
@@ -15,7 +16,8 @@ dependencies:
   - seaborn=0.11.0
   - tqdm=4.51.0
   - ipython
-  - pytorch=1.7.0
+  - pytorch=1.8.0
+  - pytorch-geometric=1.7.2
   - torchvision
   - torchaudio
   - cudatoolkit=10.2
