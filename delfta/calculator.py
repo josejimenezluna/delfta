@@ -531,3 +531,108 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
         return preds_filtered
+
+
+if __name__ == "__main__":
+    import argparse
+    import pandas as pd
+    import json
+    from openbabel.pybel import readfile
+    from delfta.utils import preds_to_lists, column_order
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "mol_file", type=str, help="Path to molecule file, readable with Openbabel."
+    )
+    parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=["all"],
+        help="A list of tasks to predict. Available tasks include `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default 'all'.",
+    )
+    parser.add_argument(
+        "--outfile",
+        type=str,
+        default="_default_",
+        help="Path to output filename. The file extension will be generated according to --json/--csv option choice. Defaults to `delfta_predictions.json`/`delfta_predictions.csv` in the directory of `mol_file`.",
+    )
+    parser.add_argument(
+        "--csv",
+        type=bool,
+        default=False,
+        help="Whether to write the results as csv file instead of the default json, by default False",
+    )
+    parser.add_argument(
+        "--delta",
+        type=bool,
+        default=True,
+        help="Whether to use delta-learning models, by default `True`",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=32,
+        help="Batch size used for prediction of large files",
+    )
+    parser.add_argument(
+        "--force3d",
+        type=bool,
+        default=False,
+        help="Whether to assign 3D coordinates to molecules lacking them, by default False",
+    )
+    parser.add_argument(
+        "--addh",
+        type=bool,
+        default=False,
+        help="Whether to add hydrogens to molecules lacking them, by default False",
+    )  # TODO -> change default?
+    parser.add_argument(
+        "--xtbopt",
+        type=bool,
+        default=False,
+        help="Whether to perform GFN2-xTB geometry optimization, by default False",
+    )
+    parser.add_argument(
+        "--verbose",
+        type=bool,
+        default=True,
+        help="Enables/disables stdout logger, by default True",
+    )
+    parser.add_argument(
+        "--progress",
+        type=bool,
+        default=True,
+        help="Enables/disables progress bars in prediction, by default True",
+    )
+    args = parser.parse_args()
+
+    outfile = (
+        os.path.join(os.path.dirname(args.mol_file), "delfta_predictions")
+        if args.outfile == "_default_"
+        else args.outfile
+    )
+
+    ext = os.path.splitext(args.mol_file)[1].lstrip(".")
+    reader = readfile(ext, args.mol_file)
+
+    calc = DelftaCalculator(
+        tasks=args.tasks,
+        delta=args.delta,
+        force3d=args.force3d,
+        addh=args.addh,
+        xtbopt=args.xtbopt,
+        verbose=args.verbose,
+        progress=args.progress,
+    )
+
+    preds = calc.predict(reader, batch_size=args.batch_size)
+    preds_list = preds_to_lists(preds)
+
+    if args.csv:
+        df = pd.DataFrame(preds)
+        df = df[sorted(df.columns.tolist(), key=lambda x: column_order[x])]
+        df.to_csv(outfile)
+    else:
+        with open(outfile, "w", encoding="utf-8") as f:
+            json.dump(preds_list, f, ensure_ascii=False, indent=4)
+
