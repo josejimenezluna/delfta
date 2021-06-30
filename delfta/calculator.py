@@ -29,7 +29,7 @@ class DelftaCalculator:
         self,
         tasks="all",
         delta=True,
-        force3d=False,
+        force3d=True,
         addh=False,
         xtbopt=False,
         verbose=True,
@@ -45,7 +45,7 @@ class DelftaCalculator:
         delta : bool, optional
             Whether to use delta-learning models, by default True
         force3d : bool, optional
-            Whether to assign 3D coordinates to molecules lacking them, by default False
+            Whether to assign 3D coordinates to molecules lacking them, by default True
         addh : bool, optional
             Whether to add hydrogens to molecules lacking them, by default False
         xtbopt : bool, optional
