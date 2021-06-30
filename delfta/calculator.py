@@ -5,6 +5,7 @@ import textwrap
 import types
 
 import numpy as np
+import openbabel
 import torch
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
@@ -131,7 +132,7 @@ class DelftaCalculator:
         Returns
         -------
         bool
-            `True` if all atoms have valid atom types, `False` otherwise. 
+            `True` if all atoms have valid atom types, `False` otherwise.
         """
         for atom in mol.atoms:
             if atom.atomicnum not in QMUGS_ATOM_DICT:
@@ -170,13 +171,16 @@ class DelftaCalculator:
         bool
             Whether `mol` has assigned hydrogens.
         """
-        atomicnums = set([atom.atomicnum for atom in mol.atoms])
-        if 1 not in atomicnums:
-            if self.addh:
-                mol.addh()
-            return False
-        else:
+        nh_mol = sum([True for atom in mol.atoms if atom.atomicnum == 1])
+        mol_cpy = mol.clone
+        mol_cpy.removeh()
+        mol_cpy.addh()
+        nh_cpy = sum([True for atom in mol_cpy.atoms if atom.atomicnum == 1])
+
+        if nh_mol == nh_cpy:
             return True
+        else:
+            return False
 
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
@@ -192,7 +196,7 @@ class DelftaCalculator:
         -------
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
-        
+
         """
         if len(mols) == 0:
             raise ValueError("No molecules provided.")
@@ -244,7 +248,7 @@ class DelftaCalculator:
             if self.force3d:
                 if self.verbose:
                     LOGGER.info(
-                        f"""Assigned MMFF94 coordinates to molecules with idx. {idx_no3d}"""
+                        f"Assigned MMFF94 coordinates and added hydrogens to molecules with idx. {idx_no3d}"
                     )
 
             else:
@@ -271,7 +275,7 @@ class DelftaCalculator:
             )
 
         if idx_noh:
-            if self.addh:
+            if self.addh and not self.force3d:
                 LOGGER.info(
                     f"""Added hydrogens for non-protonated molecules at position {idx_noh}"""
                 )
@@ -287,7 +291,7 @@ class DelftaCalculator:
     def _get_preds(self, loader, model):
         """Returns predictions for the data contained in `loader` of a
         pyTorch `model`.
-        
+
 
         Parameters
         ----------
@@ -428,15 +432,18 @@ class DelftaCalculator:
         dict
             Requested DFT-predicted properties.
         """
-        if isinstance(input_, list):
-            mols, fatal = self._preprocess(input_)  # TODO --> add error propagation
+        if isinstance(input_, openbabel.pybel.Molecule):
+            return self.predict([input_])
+
+        elif isinstance(input_, list):
+            mols, fatal = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
             return self._predict_batch(input_, batch_size)
 
         else:
             raise ValueError(
-                f"Invalid input. Expected list or generator, but got {type(input_)}."
+                f"Invalid input. Expected OEChem molecule, list or generator, but got {type(input_)}."
             )
 
         if self.delta:
@@ -524,18 +531,104 @@ class DelftaCalculator:
 
 
 if __name__ == "__main__":
-    import glob
-    from delfta.utils import DATA_PATH
+    import argparse
+    import pandas as pd
+    import json
     from openbabel.pybel import readfile
+    from delfta.utils import preds_to_lists, column_order
 
-    mol_files = glob.glob(os.path.join(DATA_PATH, "incorrect_mols", "*.sdf"))
-    mols = []
-    for mol_file in mol_files:
-        try:
-            mols.append(next(readfile("sdf", mol_file)))
-        except:
-            print(os.path.basename(mol_file))
-    calc_delta = DelftaCalculator()
-    # Verbose passing of arguments. We could've used "all" as well
-    predictions_delta = calc_delta.predict(mols, batch_size=32)
-    a = 2
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "mol_file", type=str, help="Path to molecule file, readable with Openbabel."
+    )
+    parser.add_argument(
+        "--tasks",
+        nargs="+",
+        default=["all"],
+        help="A list of tasks to predict. Available tasks include `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default 'all'.",
+    )
+    parser.add_argument(
+        "--outfile",
+        type=str,
+        default="_default_",
+        help="Path to output filename. The file extension will be generated according to --json/--csv option choice. Defaults to `delfta_predictions.json`/`delfta_predictions.csv` in the directory of `mol_file`.",
+    )
+    parser.add_argument(
+        "--csv",
+        type=bool,
+        default=False,
+        help="Whether to write the results as csv file instead of the default json, by default False",
+    )
+    parser.add_argument(
+        "--delta",
+        type=bool,
+        default=True,
+        help="Whether to use delta-learning models, by default `True`",
+    )
+    parser.add_argument(
+        "--batch_size",
+        type=int,
+        default=32,
+        help="Batch size used for prediction of large files",
+    )
+    parser.add_argument(
+        "--force3d",
+        type=bool,
+        default=False,
+        help="Whether to assign 3D coordinates to molecules lacking them, by default False",
+    )
+    parser.add_argument(
+        "--addh",
+        type=bool,
+        default=False,
+        help="Whether to add hydrogens to molecules lacking them, by default False",
+    )  # TODO -> change default?
+    parser.add_argument(
+        "--xtbopt",
+        type=bool,
+        default=False,
+        help="Whether to perform GFN2-xTB geometry optimization, by default False",
+    )
+    parser.add_argument(
+        "--verbose",
+        type=bool,
+        default=True,
+        help="Enables/disables stdout logger, by default True",
+    )
+    parser.add_argument(
+        "--progress",
+        type=bool,
+        default=True,
+        help="Enables/disables progress bars in prediction, by default True",
+    )
+    args = parser.parse_args()
+
+    outfile = (
+        os.path.join(os.path.dirname(args.mol_file), "delfta_predictions")
+        if args.outfile == "_default_"
+        else args.outfile
+    )
+
+    ext = os.path.splitext(args.mol_file)[1].lstrip(".")
+    reader = readfile(ext, args.mol_file)
+
+    calc = DelftaCalculator(
+        tasks=args.tasks,
+        delta=args.delta,
+        force3d=args.force3d,
+        addh=args.addh,
+        xtbopt=args.xtbopt,
+        verbose=args.verbose,
+        progress=args.progress,
+    )
+
+    preds = calc.predict(reader, batch_size=args.batch_size)
+    preds_list = preds_to_lists(preds)
+
+    if args.csv:
+        df = pd.DataFrame(preds)
+        df = df[sorted(df.columns.tolist(), key=lambda x: column_order[x])]
+        df.to_csv(outfile)
+    else:
+        with open(outfile, "w", encoding="utf-8") as f:
+            json.dump(preds_list, f, ensure_ascii=False, indent=4)
