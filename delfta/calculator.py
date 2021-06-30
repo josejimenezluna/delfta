@@ -538,7 +538,7 @@ if __name__ == "__main__":
     import pandas as pd
     import json
     from openbabel.pybel import readfile, readstring
-    from delfta.utils import preds_to_lists, column_order
+    from delfta.utils import preds_to_lists, COLUMN_ORDER
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -663,7 +663,7 @@ if __name__ == "__main__":
 
     if args.csv:
         df = pd.DataFrame(preds)
-        df = df[sorted(df.columns.tolist(), key=lambda x: column_order[x])]
+        df = df[sorted(df.columns.tolist(), key=lambda x: COLUMN_ORDER[x])]
         df.to_csv(args.outfile)
     else:
         with open(args.outfile, "w", encoding="utf-8") as f:

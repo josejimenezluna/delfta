@@ -58,15 +58,14 @@ ATOM_ENERGIES_XTB = {
     "I": -3.779630263390,
 }
 
-# logger
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(name)s | %(levelname)s: %(message)s",
-    datefmt="%Y/%m/%d %I:%M:%S %p",
-)
-LOGGER = logging.getLogger("DelFTa")
-
+COLUMN_ORDER = {
+    "E_form": 0,
+    "E_homo": 1,
+    "E_lumo": 2,
+    "E_gap": 3,
+    "dipole": 4,
+    "charges": 5,
+}
 
 def preds_to_lists(preds):
     preds_list = {}
@@ -77,13 +76,11 @@ def preds_to_lists(preds):
             preds_list[key] = val.tolist()
     return preds_list
 
+# logger
 
-column_order = {
-    "E_form": 0,
-    "E_homo": 1,
-    "E_lumo": 2,
-    "E_gap": 3,
-    "dipole": 4,
-    "charges": 5,
-}
-
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(name)s | %(levelname)s: %(message)s",
+    datefmt="%Y/%m/%d %I:%M:%S %p",
+)
+LOGGER = logging.getLogger("DelFTa")
