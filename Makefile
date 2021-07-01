@@ -5,7 +5,7 @@ CONDA_ACTIVATE=source $$(conda info --base)/etc/profile.d/conda.sh ; conda activ
 all: install download
 
 install:
-	@ ./INSTALL.sh
+	@ ($(SHELL) INSTALL.sh)
 
 download:
 	@ ($(CONDA_ACTIVATE) delfta ; python setup.py install)
