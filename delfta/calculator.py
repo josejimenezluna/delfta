@@ -47,7 +47,7 @@ class DelftaCalculator:
         delta : bool, optional
             Whether to use delta-learning models, by default True
         force3d : bool, optional
-            Whether to assign 3D coordinates to molecules lacking them, by default False
+            Whether to assign 3D coordinates to molecules lacking them, by default True
         addh : bool, optional
             Whether to add hydrogens to molecules lacking them, by default False
         xtbopt : bool, optional
@@ -534,40 +534,61 @@ if __name__ == "__main__":
     import argparse
     import pandas as pd
     import json
-    from openbabel.pybel import readfile
-    from delfta.utils import preds_to_lists, column_order
+    from openbabel.pybel import readfile, readstring
+    from delfta.utils import preds_to_lists, COLUMN_ORDER
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "mol_file", type=str, help="Path to molecule file, readable with Openbabel."
+        "smiles",
+        type=str,
+        nargs="?",
+        default=None,
+        help="SMILES string, readable with Openbabel",
+    )
+    parser.add_argument(
+        "--infile",
+        type=str,
+        dest="infile",
+        required=False,
+        default=None,
+        help="Path to a molecule file readable by Openbabel.",
     )
     parser.add_argument(
         "--tasks",
         nargs="+",
+        dest="tasks",
+        required=False,
         default=["all"],
         help="A list of tasks to predict. Available tasks include `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default 'all'.",
     )
     parser.add_argument(
         "--outfile",
         type=str,
-        default="_default_",
-        help="Path to output filename. The file extension will be generated according to --json/--csv option choice. Defaults to `delfta_predictions.json`/`delfta_predictions.csv` in the directory of `mol_file`.",
+        dest="outfile",
+        required=True,
+        help="Path to output filename.",
     )
     parser.add_argument(
         "--csv",
         type=bool,
+        dest="csv",
+        required=False,
         default=False,
         help="Whether to write the results as csv file instead of the default json, by default False",
     )
     parser.add_argument(
         "--delta",
         type=bool,
+        dest="delta",
+        required=False,
         default=True,
         help="Whether to use delta-learning models, by default `True`",
     )
     parser.add_argument(
         "--batch_size",
         type=int,
+        dest="batch_size",
+        required=False,
         default=32,
         help="Batch size used for prediction of large files",
     )
@@ -576,41 +597,53 @@ if __name__ == "__main__":
         type=bool,
         default=True,
         help="Whether to assign 3D coordinates to molecules lacking them, by default True",
+        dest="force3d",
+        required=False,
     )
     parser.add_argument(
         "--addh",
         type=bool,
         default=True,
         help="Whether to add hydrogens to molecules lacking them, by default True",
+        dest="addh",
+        required=False,
     )
     parser.add_argument(
         "--xtbopt",
         type=bool,
+        dest="xtbopt",
+        required=False,
         default=False,
         help="Whether to perform GFN2-xTB geometry optimization, by default False",
     )
     parser.add_argument(
         "--verbose",
         type=bool,
+        dest="verbose",
+        required=False,
         default=True,
         help="Enables/disables stdout logger, by default True",
     )
     parser.add_argument(
         "--progress",
         type=bool,
+        dest="progress",
+        required=False,
         default=True,
         help="Enables/disables progress bars in prediction, by default True",
     )
     args = parser.parse_args()
 
-    outfile = (
-        os.path.join(os.path.dirname(args.mol_file), "delfta_predictions")
-        if args.outfile == "_default_"
-        else args.outfile
-    )
+    if args.smiles is None and args.infile is None:
+        raise ValueError(
+            "Either a SMILES string or a path to an openbabel-readable file with the --infile flag should be provided."
+        )
 
-    ext = os.path.splitext(args.mol_file)[1].lstrip(".")
-    reader = readfile(ext, args.mol_file)
+    if args.smiles is not None:
+        input_ = readstring("smi", args.smiles)
+    else:
+        ext = os.path.splitext(args.infile)[1].lstrip(".")
+        input_ = readfile(ext, args.infile)
 
     calc = DelftaCalculator(
         tasks=args.tasks,
@@ -622,13 +655,13 @@ if __name__ == "__main__":
         progress=args.progress,
     )
 
-    preds = calc.predict(reader, batch_size=args.batch_size)
+    preds = calc.predict(input_, batch_size=args.batch_size)
     preds_list = preds_to_lists(preds)
 
     if args.csv:
         df = pd.DataFrame(preds)
-        df = df[sorted(df.columns.tolist(), key=lambda x: column_order[x])]
-        df.to_csv(outfile)
+        df = df[sorted(df.columns.tolist(), key=lambda x: COLUMN_ORDER[x])]
+        df.to_csv(args.outfile)
     else:
-        with open(outfile, "w", encoding="utf-8") as f:
+        with open(args.outfile, "w", encoding="utf-8") as f:
             json.dump(preds_list, f, ensure_ascii=False, indent=4)

@@ -1,0 +1,29 @@
+name: delfta
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: delfta
+          environment-file: environment.yml
+          python-version: 3.7
+          auto-activate-base: false
+      - run: |
+          conda info
+          pip install pytest
+          python setup.py install
+        name: download files
+      - run: |
+          python delfta/download.py
+        name: test
+      - run: |
+          pytest
+      

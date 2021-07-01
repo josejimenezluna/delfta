@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
-from torch_scatter import scatter_mean
 from torch_geometric.nn import MessagePassing
 from torch_geometric.typing import Adj, Size, Tensor
+from torch_scatter import scatter_mean
 
 
 class EGNN(nn.Module):
@@ -275,7 +275,6 @@ class EGNN_sparse(MessagePassing):
         return m_ij
 
     def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
-
         # get input tensors
         size = self.__check_input__(edge_index, size)
         coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
