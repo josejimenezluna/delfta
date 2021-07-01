@@ -18,10 +18,12 @@ from delfta.net_utils import (
     QMUGS_ATOM_DICT,
     DeltaDataset,
 )
-from delfta.utils import LOGGER, MODEL_PATH
+import openbabel
+from delfta.utils import LOGGER, MODEL_PATH, ELEM_TO_ATOMNUM
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
+PLACEHOLDER = float("NaN")
 
 
 class DelftaCalculator:
@@ -30,7 +32,7 @@ class DelftaCalculator:
         tasks="all",
         delta=True,
         force3d=True,
-        addh=False,
+        addh=True,
         xtbopt=False,
         verbose=True,
         progress=True,
@@ -93,11 +95,14 @@ class DelftaCalculator:
 
         self.models = list(set(self.models))
 
+    def _molcheck(self, mol):
+        return isinstance(mol, openbabel.pybel.Molecule) and len(mol.atoms) > 0
+
     def _3dcheck(self, mol):
         """Checks whether `mol` has 3d coordinates assigned. If
         `self.force3d=True` these will be computed for
         those lacking them using the MMFF94 force-field as
-        available on pybel.
+        available in pybel.
 
         Parameters
         ----------
@@ -127,7 +132,7 @@ class DelftaCalculator:
         Returns
         -------
         bool
-            `True` if all atoms have valid atom types, `False` otherwise. 
+            `True` if all atoms have valid atom types, `False` otherwise.
         """
         for atom in mol.atoms:
             if atom.atomicnum not in QMUGS_ATOM_DICT:
@@ -177,33 +182,6 @@ class DelftaCalculator:
         else:
             return False
 
-    def _validate_mols(self, mols):
-        """Checks whether the list provided contains OEChem molecule object
-        instances and that they are not empty.
-
-        Parameters
-        ----------
-        mols : list
-            A list of OEChem mols.
-
-        """
-        if len(mols) == 0:
-            raise ValueError("No molecules provided.")
-
-        is_mol = [isinstance(mol, openbabel.pybel.Molecule) for mol in mols]
-        if all(is_mol):
-            has_atoms = [len(mol.atoms) > 0 for mol in mols]
-
-            if not all(has_atoms):
-                idx_no_atoms = [idx for idx, item in enumerate(has_atoms) if not item]
-                raise ValueError(
-                    f"Found empty Molecule objects at idxs. {idx_no_atoms}"
-                )
-
-        else:
-            idx_non_mol = [idx for idx, item in enumerate(is_mol) if not item]
-            raise ValueError(f"Found non Molecule objects at idxs. {idx_non_mol}")
-
     def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
         including 3d-conformation existence, validity of atom types, neutral charge
@@ -216,32 +194,55 @@ class DelftaCalculator:
 
         Returns
         -------
-        [pybel.Molecule]
-            A list of processed OEChem molecule objects
-        
+        ([pybel.Molecule], [int])
+            A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
+
         """
-        self._validate_mols(mols)
-        idx_no3d = []
+        if len(mols) == 0:
+            raise ValueError("No molecules provided.")
+
+        idx_non_valid_mols = []
         idx_non_valid_atypes = []
         idx_charged = []
+        idx_no3d = []
         idx_noh = []
+        fatal = []
 
         for idx, mol in enumerate(mols):
-            has_3d = self._3dcheck(mol)
-            if not has_3d:
-                idx_no3d.append(idx)
+            valid_mol = self._molcheck(mol)
+            if not valid_mol:
+                idx_non_valid_mols.append(idx)
+                fatal.append(idx)
+                continue  # no need to check further
 
             is_atype_valid = self._atomtypecheck(mol)
             if not is_atype_valid:
                 idx_non_valid_atypes.append(idx)
+                fatal.append(idx)
+                continue  # no need to check further
 
             is_charged = self._chargecheck(mol)
             if is_charged:
                 idx_charged.append(idx)
+                fatal.append(idx)
+                continue  # no need to check further
+
+            has_3d = self._3dcheck(mol)
+            if not has_3d:
+                idx_no3d.append(idx)
 
             has_h = self._hydrogencheck(mol)
             if not has_h:
                 idx_noh.append(idx)
+
+            if not has_3d and not has_h and not self.addh:
+                fatal.append(idx)
+                # cannot assign 3D geometry without assigning hydrogens
+
+        if idx_non_valid_mols:
+            LOGGER.warning(
+                f"""Invalid molecules at position(s) {idx_non_valid_mols}."""
+            )
 
         if idx_no3d:
             if self.force3d:
@@ -251,66 +252,46 @@ class DelftaCalculator:
                     )
 
             else:
-                raise ValueError(
-                    textwrap.fill(
-                        textwrap.dedent(
-                            f"""
-                Molecules at position {idx_no3d} have no 3D conformations available.
-                Either provide a mol with one or re-run calculator with `force3D=True`.
-                """
-                        )
-                    )
+                LOGGER.warning(
+                    f"""Molecules at position {idx_no3d} have no 3D conformations available. 
+                        Either provide a mol with one or re-run calculator with `force3D=True`.
+                    """
                 )
 
         if idx_non_valid_atypes:
-            raise ValueError(
-                textwrap.fill(
-                    textwrap.dedent(
-                        f"""
-                            Found non-supported atomic no. in molecules
-                            at position {idx_non_valid_atypes}. This application currently supports only
-                            the atom types used in the QMugs database, namely those with
-                            the following atomic numbers {list(QMUGS_ATOM_DICT.keys())}.
-                            """
-                    )
-                )
+            LOGGER.warning(
+                f"""Found non-supported atomic no. in molecules at position 
+                    {idx_non_valid_atypes}. This application currently supports 
+                    only the atom types used in the QMugs database, namely 
+                    {list(ELEM_TO_ATOMNUM.keys())}.
+                """
             )
         if idx_charged:
-            raise ValueError(
-                textwrap.fill(
-                    textwrap.dedent(
-                        f"""
-                        Found molecules with a non-zero atomic formal charge at 
-                        positions {idx_charged}. This application currently does not support
-                        prediction for charged molecules.
-                        """
-                    )
-                )
+            LOGGER.warning(
+                f"""Found molecules with a non-zero formal charge at 
+                    positions {idx_charged}. This application currently does not support
+                    prediction for charged molecules.
+                """
             )
 
         if idx_noh:
             if self.addh and not self.force3d:
                 LOGGER.info(
-                    f"Added hydrogens for non-protonated molecules at position {idx_noh}"
+                    f"""Added hydrogens for non-protonated molecules at position {idx_noh}"""
                 )
             else:
-                raise ValueError(
-                    textwrap.fill(
-                        textwrap.dedent(
-                            f"""
-                            No hydrogens present for molecules at position {idx_noh}. Please add
-                            them manually or re-run the calculator with argument `addh=True`.
-                            """
-                        )
-                    )
+                LOGGER.warning(
+                    f"""No hydrogens present for molecules at position {idx_noh}. Please 
+                        add them manually or re-run the calculator with argument `addh=True`.
+                    """
                 )
-
-        return mols
+        good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
+        return good_mols, fatal
 
     def _get_preds(self, loader, model):
         """Returns predictions for the data contained in `loader` of a
         pyTorch `model`.
-        
+
 
         Parameters
         ----------
@@ -455,15 +436,18 @@ class DelftaCalculator:
             return self.predict([input_])
 
         elif isinstance(input_, list):
-            mols = self._preprocess(input_)
+            mols, fatal = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
             return self._predict_batch(input_, batch_size)
 
         else:
             raise ValueError(
-                f"Invalid input. Expected list or generator, but got {type(input_)}."
+                f"Invalid input. Expected OEChem molecule, list or generator, but got {type(input_)}."
             )
+
+        if self.delta:
+            xtb_props = self._get_xtb_props(mols)  # TODO --> add error propagation
 
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
@@ -518,8 +502,6 @@ class DelftaCalculator:
                 preds_filtered["charges"] = preds[model_name]
 
         if self.delta:
-            xtb_props = self._get_xtb_props(mols)
-
             for prop, delta_arr in preds_filtered.items():
                 if prop == "charges":
                     preds_filtered[prop] = [
@@ -530,7 +512,22 @@ class DelftaCalculator:
                     preds_filtered[prop] = delta_arr + np.array(
                         xtb_props[prop], dtype=np.float32
                     )
-        return preds_filtered
+
+        # insert placeholder values where errors occurred
+        preds_final = {}
+        for key, val in preds_filtered.items():
+            val = val.tolist() if key != "charges" else val
+            temp = []
+            for idx in range(len(input_)):
+                if idx in fatal:
+                    if key == "charges":
+                        temp.append(np.array(PLACEHOLDER))
+                    else:
+                        temp.append(PLACEHOLDER)
+                else:
+                    temp.append(val.pop())
+            preds_final[key] = temp
+        return preds_final
 
 
 if __name__ == "__main__":
@@ -598,18 +595,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--force3d",
         type=bool,
+        default=True,
+        help="Whether to assign 3D coordinates to molecules lacking them, by default True",
         dest="force3d",
         required=False,
-        default=True,
-        help="Whether to assign 3D coordinates to molecules lacking them, by default False",
     )
     parser.add_argument(
         "--addh",
         type=bool,
+        default=True,
+        help="Whether to add hydrogens to molecules lacking them, by default True",
         dest="addh",
         required=False,
-        default=False,
-        help="Whether to add hydrogens to molecules lacking them, by default False",
     )
     parser.add_argument(
         "--xtbopt",
@@ -668,4 +665,3 @@ if __name__ == "__main__":
     else:
         with open(args.outfile, "w", encoding="utf-8") as f:
             json.dump(preds_list, f, ensure_ascii=False, indent=4)
-
