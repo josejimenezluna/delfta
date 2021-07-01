@@ -1,4 +1,4 @@
-name: delftanew
+name: delfta
 channels:
   - pytorch
   - defaults
