@@ -29,7 +29,7 @@ MODELS = {
 }
 
 # Load models trained on 100k. Final sets to be added in the end.
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/Js0blsduCSgIaVU/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/iyA2YCruuXc7qdL/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
 
