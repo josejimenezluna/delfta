@@ -26,9 +26,14 @@ jobs:
           conda info
           pip install pytest
           # python setup.py install
-        name: download files
+        name: set pythonpath
       - run: |
           echo "PYTHONPATH=/home/runner/work/delfta/delfta" >> $GITHUB_ENV
+          echo $PYTHONPATH
+          echo $(pwd)
+          echo $(ls)
+        name: download files
+      - run: |
           python delfta/download.py
         name: test
       - run: |
