@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 def test_xtb_to_qmugs():
     sdfs = glob(os.path.join(TESTS_PATH, "*.sdf"))
+    print(f"Located {len(sdfs)} sdf files for testing!")
     for sdf in tqdm(sdfs):
         mol = next(readfile("sdf", sdf))
         props = run_xtb_calc(mol, opt=False)

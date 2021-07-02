@@ -1,10 +1,6 @@
 import os
 import glob
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-from matplotlib.lines import Line2D
-from openbabel.pybel import readfile, readstring
+from openbabel.pybel import readfile
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 
@@ -30,6 +26,7 @@ CUTOFFS = {
 
 def test_calculator():
     mol_files = sorted(glob.glob(os.path.join(DATA_PATH, "test_data", "CHEMBL*.sdf")))
+    print(f"Located {len(mol_files)} sdf files for testing!")
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
     predictions_delta = calc_delta.predict(mols)

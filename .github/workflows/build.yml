@@ -28,6 +28,7 @@ jobs:
           # python setup.py install
         name: download files
       - run: |
+          echo "PYTHONPATH=delfta" >> $GITHUB_ENV
           python delfta/download.py
         name: test
       - run: |
