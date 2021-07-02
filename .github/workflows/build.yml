@@ -28,10 +28,8 @@ jobs:
           # python setup.py install
         name: download files
       - run: |
-          echo $(pwd)
-          echo $(ls -l)
-          # echo "PYTHONPATH=/home/runner/work/delfta" >> $GITHUB_ENV
-          # python delfta/download.py
+          echo "PYTHONPATH=/home/runner/work/delfta/delfta" >> $GITHUB_ENV
+          python delfta/download.py
         name: test
       - run: |
-         # pytest
+         pytest
