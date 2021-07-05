@@ -7,6 +7,7 @@ import types
 import numpy as np
 import openbabel
 import torch
+from torch._C import dtype
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
 
@@ -513,21 +514,29 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
 
-        # insert placeholder values where errors occurred
-        preds_final = {}
-        for key, val in preds_filtered.items():
-            val = val.tolist() if key != "charges" else val
-            temp = []
-            for idx in range(len(input_)):
-                if idx in fatal:
-                    if key == "charges":
-                        temp.append(np.array(PLACEHOLDER))
-                    else:
-                        temp.append(PLACEHOLDER)
+        if fatal:
+            # insert placeholder values where errors occurred
+            idx_success = np.setdiff1d(np.arange(len(input_)), fatal)
+
+            for key, val in preds_filtered.items():
+                if key == "charges":
+                    idx_charge = 0
+                    temp = []
+                    for idx in range(len(input_)):
+                        if idx in fatal:
+                            temp.append(np.array(PLACEHOLDER))
+                        else:
+                            temp.append(val[idx_charge])
+                            idx_charge += 1
+
                 else:
-                    temp.append(val.pop())
-            preds_final[key] = temp
-        return preds_final
+                    temp = np.zeros(len(input_), dtype=np.float32)
+                    temp[idx_success] = val
+                    temp[fatal] = PLACEHOLDER
+                
+                preds_filtered[key] = temp
+                
+        return preds_filtered
 
 
 if __name__ == "__main__":
