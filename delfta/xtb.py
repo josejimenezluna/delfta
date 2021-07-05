@@ -80,7 +80,7 @@ def get_homo_and_lumo_energies(data):
 
 
 def run_xtb_calc(mol, opt=False, return_optmol=False):
-    """Runs xT single-point calculation with optional geometry optimization.
+    """Runs xTB single-point calculation with optional geometry optimization.
 
     Parameters
     ----------
