@@ -180,6 +180,8 @@ class DelftaCalculator:
         if nh_mol == nh_cpy:
             return True
         else:
+            if self.addh: 
+                mol.addh()
             return False
 
     def _preprocess(self, mols):
@@ -264,9 +266,11 @@ class DelftaCalculator:
                 """
             )
         has_3d = np.ones(num_mols, dtype=bool)
-        has_3d[np.array(list(idx_no3d))]=False
+        if idx_no3d:
+            has_3d[np.array(list(idx_no3d))]=False
         has_h = np.ones(num_mols, dtype=bool)
-        has_h[np.array(list(idx_noh))]=False
+        if idx_noh: 
+            has_h[np.array(list(idx_noh))]=False
         
 
         # no hydrogens, no 3d
