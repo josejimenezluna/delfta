@@ -36,7 +36,7 @@ jobs:
          pytest --cov=delfta --codecov --codecov-token=${{ secrets.CODECOV_TOKEN }} tests/
 
   osx:
-    runs-on: "ubuntu-latest"
+    runs-on: "macos-latest"
     defaults:
       run:
         shell: bash -l {0}
