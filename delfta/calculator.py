@@ -66,6 +66,7 @@ class DelftaCalculator:
         self.xtbopt = xtbopt
         self.verbose = verbose
         self.progress = progress
+        self.batch_mode = False
 
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
@@ -307,13 +308,18 @@ class DelftaCalculator:
         y_hats = []
         g_ptrs = []
 
-        if self.progress:
-            loader = tqdm(loader)
+        if self.progress and not self.batch_mode:
+            progress = tqdm(total=len(loader.dataset))
 
         with torch.no_grad():
             for batch in loader:
                 y_hats.append(model(batch).numpy())
                 g_ptrs.append(batch.ptr.numpy())
+                if self.progress and not self.batch_mode:
+                    progress.update(n=batch.num_graphs)
+
+        if self.progress and not self.batch_mode:
+            progress.close()
         return y_hats, g_ptrs
 
     def _get_xtb_props(self, mols):
@@ -335,11 +341,10 @@ class DelftaCalculator:
         if self.verbose:
             LOGGER.info("Now running xTB...")
 
-        if self.progress:
-            mol_progress = tqdm(mols)
-        else:
-            mol_progress = mols
-        for mol in mol_progress:
+        if self.progress and not self.batch_mode:
+            mols = tqdm(mols)
+
+        for mol in mols:
             xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
             for prop, val in xtb_out.items():
                 xtb_props[prop].append(val)
@@ -383,10 +388,12 @@ class DelftaCalculator:
         """
         preds_batch = []
         done_flag = False
-        done_so_far = 0
+        progress = tqdm()
 
         while not done_flag:
             mols = []
+            done_so_far = 0
+
             for _ in range(batch_size):
                 try:
                     mol = next(generator)
@@ -397,9 +404,11 @@ class DelftaCalculator:
                     break
 
             if self.progress:
-                print(f"Done computing for {done_so_far} molecules...")
+                progress.update(n=done_so_far)
 
             preds_batch.append(self.predict(mols, batch_size))
+
+        progress.close()
 
         pred_keys = preds_batch[0].keys()
         preds = collections.defaultdict(list)
@@ -436,6 +445,7 @@ class DelftaCalculator:
             mols, fatal = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
+            self.batch_mode = True
             return self._predict_batch(input_, batch_size)
 
         else:
