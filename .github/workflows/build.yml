@@ -24,7 +24,7 @@ jobs:
           auto-activate-base: false
       - run: |
           conda info
-          pip install pytest
+          pip install pytest pytest-cov
         name: set pythonpath
       - run: |
           echo "PYTHONPATH=/home/runner/work/delfta/delfta" >> $GITHUB_ENV
@@ -33,7 +33,7 @@ jobs:
           python delfta/download.py
         name: test
       - run: |
-         pytest
+         pytest --cov=delfta tests/
   osx:
     runs-on: "macos-latest"
     defaults:
@@ -49,16 +49,14 @@ jobs:
           auto-activate-base: false
       - run: |
           conda info
-          pip install pytest
+          pip install pytest pytest-cov
         name: set pythonpath
       - run: |
-          echo "$(pwd)"
-          echo "$(ls)"
           echo "PYTHONPATH=/Users/runner/work/delfta/delfta" >> $GITHUB_ENV
         name: download files
       - run: |
           python delfta/download.py
         name: test
       - run: |
-         pytest
-
+         pytest --cov=delfta tests/
+  
