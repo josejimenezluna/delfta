@@ -1,6 +1,6 @@
 import os
 import glob
-from openbabel.pybel import readfile
+from openbabel.pybel import readfile, readstring, Molecule
 import numpy as np
 from sklearn.metrics import mean_absolute_error
 
@@ -24,9 +24,25 @@ CUTOFFS = {
     "charges": (0.1, 0.1)
 }
 
+def test_invalid_mols(): 
+    mol_files = sorted(glob.glob(os.path.join(DATA_PATH, "test_data", "CHEMBL*.sdf")))[:5]
+    mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+    invalid_mols = [Molecule(None), # empty molecule
+                    readstring("smi", "[Xe]"), # unsupported atom type
+                    readstring("smi", "CC[O-]") # charged
+    ]
+    mols = mols + invalid_mols
+    calc_delta = DelftaCalculator(tasks=["all"], delta=True)
+    predictions_delta = calc_delta.predict(mols)
+    assert ~np.isnan(predictions_delta["E_form"][:-3]).all() # molecules from SDF give result
+    assert np.isnan(predictions_delta["E_form"][-3:]).all() # invalid_mols yield NaN
+
+
 def test_calculator():
     mol_files = sorted(glob.glob(os.path.join(DATA_PATH, "test_data", "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
+    assert len(mol_files) == 100
+
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
     predictions_delta = calc_delta.predict(mols)
@@ -35,6 +51,7 @@ def test_calculator():
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
 
+    # extract the ground truth from the QMugs SDFs
     dft_keys = [
         "DFT:FORMATION_ENERGY",
         "DFT:HOMO_ENERGY",
@@ -56,6 +73,7 @@ def test_calculator():
         else:
             dft_values[dft_key] = [float(mol.data[dft_key]) for mol in mols]
     
+    # compare ground truth with prediction
     for key in DELFTA_TO_DFT_KEYS:
         pred_delta = predictions_delta[key]
         pred_direct = predictions_direct[key]

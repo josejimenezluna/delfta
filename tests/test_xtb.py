@@ -1,5 +1,5 @@
 import os
-from glob import glob
+import glob
 
 import numpy as np
 from delfta.utils import TESTS_PATH
@@ -9,9 +9,11 @@ from tqdm import tqdm
 
 
 def test_xtb_to_qmugs():
-    sdfs = glob(os.path.join(TESTS_PATH, "*.sdf"))
-    print(f"Located {len(sdfs)} sdf files for testing!")
-    for sdf in tqdm(sdfs):
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))
+    print(f"Located {len(mol_files)} sdf files for testing!")
+    assert len(mol_files) == 100
+
+    for sdf in tqdm(mol_files):
         mol = next(readfile("sdf", sdf))
         props = run_xtb_calc(mol, opt=False)
         assert np.isclose(
