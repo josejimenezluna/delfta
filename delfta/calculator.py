@@ -97,7 +97,7 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _molcheck(self, mol):
-        return isinstance(mol, openbabel.pybel.Molecule) and len(mol.atoms) > 0
+        return isinstance(mol, openbabel.pybel.Molecule) and (mol.OBMol is not None)  and (len(mol.atoms) > 0)
 
     def _3dcheck(self, mol):
         """Checks whether `mol` has 3d coordinates assigned. If
@@ -228,13 +228,13 @@ class DelftaCalculator:
                 fatal.append(idx)
                 continue  # no need to check further
 
-            has_3d = self._3dcheck(mol)
-            if not has_3d:
-                idx_no3d.append(idx)
-
             has_h = self._hydrogencheck(mol)
             if not has_h:
                 idx_noh.append(idx)
+                
+            has_3d = self._3dcheck(mol)
+            if not has_3d:
+                idx_no3d.append(idx)
 
             if not has_3d and not has_h and not self.addh:
                 fatal.append(idx)
@@ -278,7 +278,7 @@ class DelftaCalculator:
         if idx_noh:
             if self.addh and not self.force3d:
                 LOGGER.info(
-                    f"""Added hydrogens for non-protonated molecules at position {idx_noh}"""
+                    f"""Added hydrogens for molecules at position {idx_noh}"""
                 )
             else:
                 LOGGER.warning(
