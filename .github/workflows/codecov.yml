@@ -1,0 +1,9 @@
+steps:
+- uses: actions/checkout@master
+- uses: codecov/codecov-action@v1
+  with:
+    token: ${{ secrets.CODECOV_TOKEN }}
+    files: .coverage
+    name: codecov-umbrella
+    fail_ci_if_error: false # optional (default = false)
+    verbose: true # optional (default = false)
