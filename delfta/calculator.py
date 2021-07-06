@@ -1,13 +1,11 @@
 import collections
 import os
 import pickle
-import textwrap
 import types
 
 import numpy as np
 import openbabel
 import torch
-from torch._C import dtype
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
 
@@ -207,26 +205,24 @@ class DelftaCalculator:
         idx_charged = []
         idx_no3d = []
         idx_noh = []
-        fatal = []
+        fatal = set()
 
         for idx, mol in enumerate(mols):
             valid_mol = self._molcheck(mol)
             if not valid_mol:
                 idx_non_valid_mols.append(idx)
-                fatal.append(idx)
+                fatal.add(idx)
                 continue  # no need to check further
 
             is_atype_valid = self._atomtypecheck(mol)
             if not is_atype_valid:
                 idx_non_valid_atypes.append(idx)
-                fatal.append(idx)
-                continue  # no need to check further
+                fatal.add(idx)
 
             is_charged = self._chargecheck(mol)
             if is_charged:
                 idx_charged.append(idx)
-                fatal.append(idx)
-                continue  # no need to check further
+                fatal.add(idx)
 
             has_h = self._hydrogencheck(mol)
             if not has_h:
@@ -237,7 +233,7 @@ class DelftaCalculator:
                 idx_no3d.append(idx)
 
             if not has_3d and not has_h and not self.addh:
-                fatal.append(idx)
+                fatal.add(idx)
                 # cannot assign 3D geometry without assigning hydrogens
 
         if idx_non_valid_mols:
@@ -287,7 +283,7 @@ class DelftaCalculator:
                     """
                 )
         good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
-        return good_mols, fatal
+        return good_mols, list(fatal)
 
     def _get_preds(self, loader, model):
         """Returns predictions for the data contained in `loader` of a
