@@ -180,6 +180,8 @@ class DelftaCalculator:
         if nh_mol == nh_cpy:
             return True
         else:
+            if self.addh: 
+                mol.addh()
             return False
 
     def _preprocess(self, mols):
@@ -201,90 +203,122 @@ class DelftaCalculator:
         if len(mols) == 0:
             raise ValueError("No molecules provided.")
 
-        idx_non_valid_mols = []
-        idx_non_valid_atypes = []
-        idx_charged = []
-        idx_no3d = []
-        idx_noh = []
+        idx_non_valid_mols = set()
+        idx_non_valid_atypes = set()
+        idx_charged = set()
+        idx_no3d = set()
+        idx_noh = set()
         fatal = set()
 
         for idx, mol in enumerate(mols):
             valid_mol = self._molcheck(mol)
             if not valid_mol:
-                idx_non_valid_mols.append(idx)
+                idx_non_valid_mols.add(idx)
                 fatal.add(idx)
                 continue  # no need to check further
 
             is_atype_valid = self._atomtypecheck(mol)
             if not is_atype_valid:
-                idx_non_valid_atypes.append(idx)
+                idx_non_valid_atypes.add(idx)
                 fatal.add(idx)
 
             is_charged = self._chargecheck(mol)
             if is_charged:
-                idx_charged.append(idx)
+                idx_charged.add(idx)
                 fatal.add(idx)
 
             has_h = self._hydrogencheck(mol)
             if not has_h:
-                idx_noh.append(idx)
+                idx_noh.add(idx)
                 
             has_3d = self._3dcheck(mol)
             if not has_3d:
-                idx_no3d.append(idx)
+                idx_no3d.add(idx)
 
             if not has_3d and not has_h and not self.addh:
                 fatal.add(idx)
                 # cannot assign 3D geometry without assigning hydrogens
-
+        
+        good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
+        self._log_status(len(mols), idx_non_valid_mols, idx_non_valid_atypes, idx_charged, idx_no3d, idx_noh)
+        if len(good_mols) == 0: 
+            raise ValueError("No valid molecules provided")
+        return good_mols, list(fatal)
+    
+    def _log_status(self, num_mols, idx_non_valid_mols, idx_non_valid_atypes, idx_charged, idx_no3d, idx_noh):
         if idx_non_valid_mols:
             LOGGER.warning(
-                f"""Invalid molecules at position(s) {idx_non_valid_mols}."""
+                f"""Invalid molecules at position(s) {idx_non_valid_mols}. Skipping."""
             )
-
-        if idx_no3d:
-            if self.force3d:
-                if self.verbose:
-                    LOGGER.info(
-                        f"Assigned MMFF94 coordinates and added hydrogens to molecules with idx. {idx_no3d}"
-                    )
-
-            else:
-                LOGGER.warning(
-                    f"""Molecules at position {idx_no3d} have no 3D conformations available. 
-                        Either provide a mol with one or re-run calculator with `force3D=True`.
-                    """
-                )
-
         if idx_non_valid_atypes:
             LOGGER.warning(
                 f"""Found non-supported atomic no. in molecules at position 
                     {idx_non_valid_atypes}. This application currently supports 
-                    only the atom types used in the QMugs database, namely 
-                    {list(ELEM_TO_ATOMNUM.keys())}.
+                    only the atom types used in the QMugs dataset, namely 
+                    {list(ELEM_TO_ATOMNUM.keys())}. Skipping.
                 """
             )
         if idx_charged:
             LOGGER.warning(
                 f"""Found molecules with a non-zero formal charge at 
                     positions {idx_charged}. This application currently does not support
-                    prediction for charged molecules.
+                    prediction for charged molecules. Skipping.
                 """
             )
+        has_3d = np.ones(num_mols, dtype=bool)
+        if idx_no3d:
+            has_3d[np.array(list(idx_no3d))]=False
+        has_h = np.ones(num_mols, dtype=bool)
+        if idx_noh: 
+            has_h[np.array(list(idx_noh))]=False
+        
 
-        if idx_noh:
-            if self.addh and not self.force3d:
-                LOGGER.info(
-                    f"""Added hydrogens for molecules at position {idx_noh}"""
-                )
-            else:
+        # no hydrogens, no 3d
+        if np.any(~has_3d & ~has_h): 
+            relevant_idx = np.where(~has_3d & ~has_h)[0].tolist()
+            if self.force3d and not self.addh: 
                 LOGGER.warning(
-                    f"""No hydrogens present for molecules at position {idx_noh}. Please 
-                        add them manually or re-run the calculator with argument `addh=True`.
+                    f"""Molecules at position {relevant_idx} have no 3D conformations 
+                        and no hydrogens, but cannot `force3d` when `addh=False`. Skipping.
                     """
                 )
-        good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
-        return good_mols, list(fatal)
+            elif self.force3d and self.addh and self.verbose: 
+                LOGGER.info(
+                    f"Assigned MMFF94 coordinates and added hydrogens to molecules with idx. {relevant_idx}"
+                )
+            elif not self.force3d and self.addh and self.verbose: 
+                LOGGER.info(
+                    f"""Added hydrogens to molecules with idx. {relevant_idx}. They do not 
+                    have 3D conformations available, but you didn't request to `force3d`."""
+                )
+
+        # no hydrogens, but 3D
+        if np.any(has_3d & ~has_h):
+            relevant_idx = np.where(has_3d & ~has_h)[0].tolist()
+            if self.addh and self.verbose: 
+                LOGGER.info(
+                    f"""Added hydrogens to molecules with idx. {relevant_idx}."""
+                )
+            elif not self.addh and self.verbose: 
+                LOGGER.info(
+                    f"""Molecules with idx. {relevant_idx} don't have hydrogens, but you didn't
+                    request to `addh`."""
+                )
+
+        # hydrogens, but no 3d
+        if np.any(~has_3d & has_h):
+            relevant_idx = np.where(~has_3d & has_h)[0].tolist()
+            if self.force3d and self.verbose: 
+                LOGGER.info(
+                    f"""Assigned MMFF94 coordinates to molecules with idx. {relevant_idx}."""
+                )
+            elif not self.force3d and self.verbose: 
+                LOGGER.info(
+                    f"""Molecules with idx. {relevant_idx} don't have 3D conformations available,
+                     but you didn't request to `force3d`."""
+                )
+
+
 
     def _get_preds(self, loader, model):
         """Returns predictions for the data contained in `loader` of a

@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error
 
 from delfta.calculator import DelftaCalculator
-from delfta.utils import DATA_PATH
+from delfta.utils import TESTS_PATH
 
 DELFTA_TO_DFT_KEYS = {
     "E_form": "DFT:FORMATION_ENERGY",
@@ -24,11 +24,8 @@ CUTOFFS = {
     "charges": (0.1, 0.1),
 }
 
-
-def test_invalid_mols():
-    mol_files = sorted(glob.glob(os.path.join(DATA_PATH, "test_data", "CHEMBL*.sdf")))[
-        :5
-    ]
+def test_invalid_mols(): 
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))[:5]
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mols = [
         Molecule(None),  # empty molecule
@@ -44,8 +41,26 @@ def test_invalid_mols():
     assert np.isnan(predictions_delta["E_form"][-3:]).all()  # invalid_mols yield NaN
 
 
+def test_3d_and_h_mols(): 
+    filenames = ["no_3d_no_h.sdf", "no_3d_but_h.sdf", "yes_3d_but_no_h.sdf", "yes_3d_yes_h.sdf"]
+    mol_files = [os.path.join(TESTS_PATH, "error_mols", filename) for filename in filenames]
+    assert len(mol_files) == 4
+    idxs_nan = [
+        [False, False, False, False],
+        [True, False, False, False],
+        [False, False, False, False],
+        [False, False, False, False]
+    ]
+    force3ds = [True, True, False, False]
+    addhs = [True, False, True, False]
+    for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan): 
+        mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+        calc_delta = DelftaCalculator(tasks=["all"], delta=True, force3d=force3d, addh=addh)
+        predictions_delta = calc_delta.predict(mols)
+        assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
+
 def test_calculator():
-    mol_files = sorted(glob.glob(os.path.join(DATA_PATH, "test_data", "CHEMBL*.sdf")))
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
 
