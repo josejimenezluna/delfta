@@ -21,21 +21,24 @@ CUTOFFS = {
     "E_lumo": (0.005, 0.005),
     "E_gap": (0.005, 0.005),
     "dipole": (0.3, 0.4),
-    "charges": (0.1, 0.1)
+    "charges": (0.1, 0.1),
 }
 
 def test_invalid_mols(): 
     mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))[:5]
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
-    invalid_mols = [Molecule(None), # empty molecule
-                    readstring("smi", "[Xe]"), # unsupported atom type
-                    readstring("smi", "CC[O-]") # charged
+    invalid_mols = [
+        Molecule(None),  # empty molecule
+        readstring("smi", "[Xe]"),  # unsupported atom type
+        readstring("smi", "CC[O-]"),  # charged
     ]
     mols = mols + invalid_mols
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
     predictions_delta = calc_delta.predict(mols)
-    assert ~np.isnan(predictions_delta["E_form"][:-3]).all() # molecules from SDF give result
-    assert np.isnan(predictions_delta["E_form"][-3:]).all() # invalid_mols yield NaN
+    assert ~np.isnan(
+        predictions_delta["E_form"][:-3]
+    ).all()  # molecules from SDF give result
+    assert np.isnan(predictions_delta["E_form"][-3:]).all()  # invalid_mols yield NaN
 
 
 def test_3d_and_h_mols(): 
@@ -90,7 +93,7 @@ def test_calculator():
             ]
         else:
             dft_values[dft_key] = [float(mol.data[dft_key]) for mol in mols]
-    
+
     # compare ground truth with prediction
     for key in DELFTA_TO_DFT_KEYS:
         pred_delta = predictions_delta[key]
@@ -99,7 +102,4 @@ def test_calculator():
         assert mean_absolute_error(pred_delta, dft_vals) < CUTOFFS[key][0]
         assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
 
-if __name__ == "__main__": 
-    test_invalid_mols()
-    test_3d_and_h_mols()
-    test_calculator()
+
