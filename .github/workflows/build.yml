@@ -33,7 +33,7 @@ jobs:
           python delfta/download.py
         name: test
       - run: |
-         pytest --cov=delfta --codecov --codecov-token=${{ secrets.CODECOV_TOKEN }} tests/
+         pytest --cov=delfta --cov-config=.coveragerc --codecov --codecov-token=${{ secrets.CODECOV_TOKEN }} tests/
 
   osx:
     runs-on: "macos-latest"
@@ -59,4 +59,4 @@ jobs:
           python delfta/download.py
         name: test
       - run: |
-         pytest --cov=delfta --codecov --codecov-token=${{ secrets.CODECOV_TOKEN }} tests/
+         pytest --cov=delfta --cov-config=.coveragerc --codecov --codecov-token=${{ secrets.CODECOV_TOKEN }} tests/
