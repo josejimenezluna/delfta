@@ -104,7 +104,8 @@ def get_model_weights(name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
     parser.add_argument("--training",
-                        type=str, 
+                        nargs="?",
+                        type=bool, 
                         required=False,
                         default=False)
     args = parser.parse_args()
