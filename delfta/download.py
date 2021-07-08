@@ -29,7 +29,7 @@ MODELS = {
 }
 
 # Load models trained on 100k. Final sets to be added in the end.
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/iyA2YCruuXc7qdL/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/hb17Mlmy15NHbKX/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
 
@@ -104,9 +104,8 @@ def get_model_weights(name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
     parser.add_argument("--training",
-                        nargs="?",
-                        type=bool, 
-                        required=False,
+                        dest="training",
+                        action="store_true",
                         default=False)
     args = parser.parse_args()
 
