@@ -9,7 +9,7 @@
 
 Currently supported OSs include both Linux and Mac OS (10.5, x86_64 only). Basic build tools (_e.g_. make) are currently required for installation. Under Ubuntu, for instance, these are available under the `build-essential` package. The required package might be named differently on different distributions.
 
-While the Linux installation fully supports GPU-acceleration via cudatoolkit, only CPU inference currently is available under Mac OS.
+While the Linux installation fully supports GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS.
 
 ### Installation via conda
 
