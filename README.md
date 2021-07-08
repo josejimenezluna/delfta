@@ -1,8 +1,58 @@
-# DelFTa
+# DelFTa: Open-source $\Delta$-quantum machine learning
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/josejimenezluna/delfta/branch/master/graph/badge.svg?token=9Q39OU5VR0)](https://codecov.io/gh/josejimenezluna/delfta)
 
 ## Installation
 
-Just type `make` in this folder and activate the `delfta` environment.
+### Pre-requisites
+
+Currently supported OSs include both Linux and Mac OS (10.5, x86_64 only). Basic build tools (__e.g__. make) are currently required for installation. Under Ubuntu, for instance, these are available under the `build-essential` package. The required package might be named differently on different distributions.
+
+While the Linux installation fully supports GPU-acceleration via cudatoolkit, only CPU inference currently is available under Mac OS.
+
+### Installation via conda
+
+We recommend and support installation via the conda package manager. First clone the repository to obtain the latest version or download one of the provided stable releases:
+
+```bash
+https://github.com/josejimenezluna/delfta
+```
+
+Afterwards, move into the root repo directory and build the provided Makefile via:
+
+```bash
+make
+```
+
+which will create a new conda environment named `delfta` and install all the required dependencies as well as this package according to the requirements of your host operating system. After the installation has completed, you can now activate the environent and use the package via
+
+```bash
+conda activate delfta
+```
+
+
+## Quick start
+
+TODO
+
+Further documentation on how to use the package is available under ReadTheDocs.
+
+## Tutorials
+
+Several tutorials can be found under the `tutorial` subfolder. These include:
+
+TODO
+
+## Citation
+
+If you use this software or parts thereof, please consider citing the following BibTex entry:
+
+```
+@article{atz2021delfta,
+  title={DelFTa: Open-source delta-quantum machine learning},
+  author={Atz, K., and Isert, C., and B\"{o}cker, M., and Jiménez-Luna, J., and Schneider G.},
+  journal={TBD},
+  year={2021},
+}
+```
