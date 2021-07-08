@@ -13,7 +13,7 @@ While the Linux installation fully supports GPU-acceleration via cudatoolkit, on
 
 ### Installation via conda
 
-We recommend and support installation via the conda package manager. First clone the repository to obtain the latest version or download one of the provided stable releases:
+We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager. First clone the repository to obtain the latest version or download one of the provided stable releases:
 
 ```bash
 https://github.com/josejimenezluna/delfta
@@ -34,9 +34,20 @@ conda activate delfta
 
 ## Quick start
 
-TODO
+```python
+from openbabel.pybel import readstring
+mol = reastring("smi", "CCO")
 
-Further documentation on how to use the package is available under ReadTheDocs.
+from delfta.calculator import DelftaCalculator
+calc = DelftaCalculator(tasks=["E_form", "E_homo"])
+preds = calc.predict(mol)
+
+print(preds)
+```
+
+TODO further examples
+
+Further documentation on how to use the package is available under [ReadTheDocs](http://toinclude.html).
 
 ## Tutorials
 
