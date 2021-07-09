@@ -32,6 +32,20 @@ conda activate delfta
 ```
 
 
+### Installation via Docker
+
+We also provide a CUDA-enabled Dockerfile for easier management. Build the container by
+
+```bash
+docker build -t delfta . 
+```
+
+Attach to the provided container with:
+
+```bash
+docker run -it delfta bash
+```
+
 ## Quick start
 
 ```python
