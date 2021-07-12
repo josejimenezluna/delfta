@@ -194,11 +194,3 @@ def test_calculator():
         dft_vals = np.array(dft_values[DELFTA_TO_DFT_KEYS[key]])
         assert mean_absolute_error(pred_delta, dft_vals) < CUTOFFS[key][0]
         assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
-
-
-if __name__ == "__main__":
-    test_invalid_mols_list()
-    test_invalid_mols_generator()
-    test_3d_and_h_mols_generator()
-    test_3d_and_h_mols_list()
-    a = 2
