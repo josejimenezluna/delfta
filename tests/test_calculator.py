@@ -25,29 +25,43 @@ CUTOFFS = {
     "charges": (0.1, 0.1),
 }
 
-def test_invalid_mols_list(): 
-    mol_files = random.sample(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10)
+
+def test_invalid_mols_list():
+    mol_files = random.sample(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10
+    )
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
     invalid_mols = [next(readfile("sdf", mol_file)) for mol_file in invalid_mol_files]
     mols = mols + invalid_mols
-    expected_nans = [True]*(len(mols)-len(invalid_mols)) + [False]*len(invalid_mols)
+    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(
+        invalid_mols
+    )
     tmp = list(zip(mols, expected_nans))
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(list(mols), random.randint(0,len(mols)))
-    assert ~np.isnan(predictions_delta["E_form"][np.array(expected_nans)]).all()  # valid molecules from SDF give result
-    assert np.isnan(predictions_delta["E_form"][~np.array(expected_nans)]).all()  # invalid_mols give NaN
+    predictions_delta = calc_delta.predict(list(mols), random.randint(0, len(mols)))
+    assert ~np.isnan(
+        predictions_delta["E_form"][np.array(expected_nans)]
+    ).all()  # valid molecules from SDF give result
+    assert np.isnan(
+        predictions_delta["E_form"][~np.array(expected_nans)]
+    ).all()  # invalid_mols give NaN
 
-def test_invalid_mols_generator(): 
-    mol_files = random.sample(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10)
+
+def test_invalid_mols_generator():
+    mol_files = random.sample(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10
+    )
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
     invalid_mols = [next(readfile("sdf", mol_file)) for mol_file in invalid_mol_files]
     mols = mols + invalid_mols
     [mol.make2D() for mol in mols]
-    expected_nans = [True]*(len(mols)-len(invalid_mols)) + [False]*len(invalid_mols)
+    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(
+        invalid_mols
+    )
     tmp = list(zip(mols, expected_nans))
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
@@ -56,14 +70,27 @@ def test_invalid_mols_generator():
     outfile = Outputfile("sdf", test_sdf)
     [outfile.write(mol) for mol in mols]
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(test_sdf, batch_size=random.randint(1,len(mols)))
-    assert ~np.isnan(predictions_delta["E_form"][np.array(expected_nans)]).all()  # valid molecules from SDF give result
-    assert np.isnan(predictions_delta["E_form"][~np.array(expected_nans)]).all()  # invalid_mols give NaN
+    predictions_delta = calc_delta.predict(
+        test_sdf, batch_size=random.randint(1, len(mols))
+    )
+    assert ~np.isnan(
+        predictions_delta["E_form"][np.array(expected_nans)]
+    ).all()  # valid molecules from SDF give result
+    assert np.isnan(
+        predictions_delta["E_form"][~np.array(expected_nans)]
+    ).all()  # invalid_mols give NaN
 
 
-def test_3d_and_h_mols_list(): 
-    filenames = ["no_3d_no_h.sdf", "no_3d_but_h.sdf", "yes_3d_but_no_h.sdf", "yes_3d_yes_h.sdf"]
-    mol_files = [os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames]
+def test_3d_and_h_mols_list():
+    filenames = [
+        "no_3d_no_h.sdf",
+        "no_3d_but_h.sdf",
+        "yes_3d_but_no_h.sdf",
+        "yes_3d_yes_h.sdf",
+    ]
+    mol_files = [
+        os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames
+    ]
     assert len(mol_files) == 4
 
     # where do we expect a NaN answer because the calculator can't run with those options
@@ -71,19 +98,31 @@ def test_3d_and_h_mols_list():
         [False, False, False, False],
         [True, False, False, False],
         [False, False, False, False],
-        [False, False, False, False]
+        [False, False, False, False],
     ]
     force3ds = [True, True, False, False]
     addhs = [True, False, True, False]
-    for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan): 
+    for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan):
         mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
-        calc_delta = DelftaCalculator(tasks=["all"], delta=True, force3d=force3d, addh=addh)
-        predictions_delta = calc_delta.predict(mols, batch_size=random.randint(1,len(mols)))
+        calc_delta = DelftaCalculator(
+            tasks=["all"], delta=True, force3d=force3d, addh=addh
+        )
+        predictions_delta = calc_delta.predict(
+            mols, batch_size=random.randint(1, len(mols))
+        )
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
-def test_3d_and_h_mols_generator(): 
-    filenames = ["no_3d_no_h.sdf", "no_3d_but_h.sdf", "yes_3d_but_no_h.sdf", "yes_3d_yes_h.sdf"]
-    mol_files = [os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames]
+
+def test_3d_and_h_mols_generator():
+    filenames = [
+        "no_3d_no_h.sdf",
+        "no_3d_but_h.sdf",
+        "yes_3d_but_no_h.sdf",
+        "yes_3d_yes_h.sdf",
+    ]
+    mol_files = [
+        os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames
+    ]
     assert len(mol_files) == 4
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     temp_dir = tempfile.TemporaryDirectory()
@@ -96,17 +135,24 @@ def test_3d_and_h_mols_generator():
         [False, False, False, False],
         [True, False, False, False],
         [False, False, False, False],
-        [False, False, False, False]
+        [False, False, False, False],
     ]
     force3ds = [True, True, False, False]
     addhs = [True, False, True, False]
-    for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan): 
-        calc_delta = DelftaCalculator(tasks=["all"], delta=True, force3d=force3d, addh=addh)
-        predictions_delta = calc_delta.predict(test_sdf, batch_size=random.randint(1,len(mols)))
+    for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan):
+        calc_delta = DelftaCalculator(
+            tasks=["all"], delta=True, force3d=force3d, addh=addh
+        )
+        predictions_delta = calc_delta.predict(
+            test_sdf, batch_size=random.randint(1, len(mols))
+        )
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
+
 def test_calculator():
-    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
+    mol_files = sorted(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
+    )
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
@@ -118,7 +164,7 @@ def test_calculator():
     calc_direct = DelftaCalculator(tasks="all", delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
-    
+
     # extract the ground truth from the QMugs SDFs
     dft_keys = [
         "DFT:FORMATION_ENERGY",
@@ -150,7 +196,7 @@ def test_calculator():
         assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
 
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     test_invalid_mols_list()
     test_invalid_mols_generator()
     test_3d_and_h_mols_generator()

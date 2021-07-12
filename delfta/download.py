@@ -82,7 +82,6 @@ def get_dataset(name):
         return h5
 
 
-
 def get_model_weights(name):
     """Returns a torch.load handle for a model with a specific `name`.
     These are checked in the `MODELS` global variable.
@@ -103,10 +102,9 @@ def get_model_weights(name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
-    parser.add_argument("--training",
-                        dest="training",
-                        action="store_true",
-                        default=False)
+    parser.add_argument(
+        "--training", dest="training", action="store_true", default=False
+    )
     args = parser.parse_args()
 
     os.makedirs(DATA_PATH, exist_ok=True)
@@ -122,7 +120,7 @@ if __name__ == "__main__":
     if args.training:
         # Training data
         LOGGER.info("Now downloading training data...")
-        
+
         download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
         with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
