@@ -45,6 +45,8 @@ def test_3d_and_h_mols():
     filenames = ["no_3d_no_h.sdf", "no_3d_but_h.sdf", "yes_3d_but_no_h.sdf", "yes_3d_yes_h.sdf"]
     mol_files = [os.path.join(TESTS_PATH, "error_mols", filename) for filename in filenames]
     assert len(mol_files) == 4
+
+    # where do we expect a NaN answer because the calculator can't run with those options
     idxs_nan = [
         [False, False, False, False],
         [True, False, False, False],
@@ -63,15 +65,16 @@ def test_calculator():
     mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
-
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
-    calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(mols)
-    calc_direct = DelftaCalculator(tasks=["all"], delta=False)
-    predictions_direct = calc_direct.predict(mols)
-    predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
-    predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
 
+    calc_delta = DelftaCalculator(tasks="all", delta=True)
+    predictions_delta = calc_delta.predict(mols)
+    predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
+
+    calc_direct = DelftaCalculator(tasks="all", delta=False)
+    predictions_direct = calc_direct.predict(mols)
+    predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
+    
     # extract the ground truth from the QMugs SDFs
     dft_keys = [
         "DFT:FORMATION_ENERGY",

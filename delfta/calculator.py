@@ -481,6 +481,8 @@ class DelftaCalculator:
         dict
             Requested DFT-predicted properties.
         """
+        fatal_xtb, fatal = [], []
+
         if isinstance(input_, openbabel.pybel.Molecule):
             return self.predict([input_])
 
@@ -495,8 +497,7 @@ class DelftaCalculator:
             raise ValueError(
                 f"Invalid input. Expected OEChem molecule, list or generator, but got {type(input_)}."
             )
-
-        fatal_xtb, fatal = [], []
+            
         if self.delta:
             xtb_props, fatal_xtb = self._get_xtb_props(mols)  # TODO --> add error propagation
             mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
