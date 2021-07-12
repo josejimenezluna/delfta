@@ -12,8 +12,8 @@ from delfta.utils import (
     AU_TO_DEBYE,
     EV_TO_HARTREE,
     LOGGER,
-    XTB_BINARY,
     UTILS_PATH,
+    XTB_BINARY,
 )
 
 XTB_INPUT_FILE = os.path.join(UTILS_PATH, "xtb.inp")
