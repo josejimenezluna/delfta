@@ -378,11 +378,20 @@ class DelftaCalculator:
         if self.progress and not self.batch_mode:
             mols = tqdm(mols)
 
-        for mol in mols:
-            xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
-            for prop, val in xtb_out.items():
-                xtb_props[prop].append(val)
-        return xtb_props
+        fatal = []
+        for i, mol in enumerate(mols):
+            try: 
+                xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
+                for prop, val in xtb_out.items():
+                    xtb_props[prop].append(val)
+            except ValueError as xtb_error: 
+                fatal.append(i)
+                LOGGER.warning(xtb_error.args[0])
+                # keys = ['E_form', 'E_homo', 'E_lumo', 'E_gap', 'dipole', 'charges']
+                # vals = [PLACEHOLDER]*(len(keys)-1)+[[PLACEHOLDER]]
+                # for prop, val in zip(keys, vals):
+                #     xtb_props[prop].append(val) # append 
+        return xtb_props, fatal
 
     def _inv_scale(self, preds, norm_dict):
         """Inverse min-max scaling transformation
@@ -488,8 +497,8 @@ class DelftaCalculator:
             )
 
         if self.delta:
-            xtb_props = self._get_xtb_props(mols)  # TODO --> add error propagation
-
+            xtb_props, fatal_xtb = self._get_xtb_props(mols)  # TODO --> add error propagation
+            mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
@@ -554,29 +563,34 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
 
-        if fatal:
-            # insert placeholder values where errors occurred
-            idx_success = np.setdiff1d(np.arange(len(input_)), fatal)
+        if fatal_xtb: # insert placeholder values where xtb errors occurred
+            preds_filtered = self.insert_placeholders(preds_filtered, len(input_)-len(fatal), fatal_xtb)
 
-            for key, val in preds_filtered.items():
-                if key == "charges":
-                    idx_charge = 0
-                    temp = []
-                    for idx in range(len(input_)):
-                        if idx in fatal:
-                            temp.append(np.array(PLACEHOLDER))
-                        else:
-                            temp.append(val[idx_charge])
-                            idx_charge += 1
-
-                else:
-                    temp = np.zeros(len(input_), dtype=np.float32)
-                    temp[idx_success] = val
-                    temp[fatal] = PLACEHOLDER
-                
-                preds_filtered[key] = temp
-                
+        if fatal: # insert placeholder values where other errors occurred
+            preds_filtered = self.insert_placeholders(preds_filtered, len(input_), fatal)
+        
         return preds_filtered
+
+    def insert_placeholders(self, preds, len_input, fatal): 
+        idx_success = np.setdiff1d(np.arange(len_input), fatal)
+        for key, val in preds.items():
+            if key == "charges":
+                idx_charge = 0
+                temp = []
+                for idx in range(len_input):
+                    if idx in fatal:
+                        temp.append(np.array(PLACEHOLDER))
+                    else:
+                        temp.append(val[idx_charge])
+                        idx_charge += 1
+            else:
+                temp = np.zeros(len_input, dtype=np.float32)
+                temp[idx_success] = val
+                temp[fatal] = PLACEHOLDER
+            preds[key] = temp
+        return preds
+
+
 
 
 if __name__ == "__main__":
