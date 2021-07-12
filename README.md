@@ -16,7 +16,7 @@ While the Linux installation fully supports GPU-acceleration via cudatoolkit, on
 We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager. First clone the repository to obtain the latest version or download one of the provided stable releases:
 
 ```bash
-https://github.com/josejimenezluna/delfta
+git clone https://github.com/josejimenezluna/delfta
 ```
 
 Afterwards, move into the root repo directory and build the provided Makefile via:
