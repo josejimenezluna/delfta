@@ -472,7 +472,7 @@ class DelftaCalculator:
         Parameters
         ----------
         input_ : None
-            Either a list of OEChem Molecule instances or a pybel filereader generator instance.
+            Either a single or a list of OEChem Molecule instances or a pybel filereader generator instance.
         batch_size : int, optional
             Batch size used for prediction, by default 32
 
