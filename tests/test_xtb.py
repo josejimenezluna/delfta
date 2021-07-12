@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 
 def test_xtb_to_qmugs():
-    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "CHEMBL*.sdf")))
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
 

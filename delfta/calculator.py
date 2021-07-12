@@ -96,7 +96,11 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _molcheck(self, mol):
-        return isinstance(mol, openbabel.pybel.Molecule) and (mol.OBMol is not None)  and (len(mol.atoms) > 0)
+        return (
+            isinstance(mol, openbabel.pybel.Molecule)
+            and (mol.OBMol is not None)
+            and (len(mol.atoms) > 0)
+        )
 
     def _3dcheck(self, mol):
         """Checks whether `mol` has 3d coordinates assigned. If
@@ -180,11 +184,11 @@ class DelftaCalculator:
         if nh_mol == nh_cpy:
             return True
         else:
-            if self.addh: 
+            if self.addh:
                 mol.addh()
             return False
 
-    def _preprocess(self, mols):
+    def _preprocess(self, mols, offset_idx=0):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
         including 3d-conformation existence, validity of atom types, neutral charge
         and hydrogen addition.
@@ -198,6 +202,8 @@ class DelftaCalculator:
         -------
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
+        offset_idx: int, optional
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
 
         """
         if len(mols) == 0:
@@ -230,7 +236,7 @@ class DelftaCalculator:
             has_h = self._hydrogencheck(mol)
             if not has_h:
                 idx_noh.add(idx)
-                
+
             has_3d = self._3dcheck(mol)
             if not has_3d:
                 idx_no3d.add(idx)
@@ -238,19 +244,38 @@ class DelftaCalculator:
             if not has_3d and not has_h and not self.addh:
                 fatal.add(idx)
                 # cannot assign 3D geometry without assigning hydrogens
-        
+
         good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
-        self._log_status(len(mols), idx_non_valid_mols, idx_non_valid_atypes, idx_charged, idx_no3d, idx_noh)
-        if len(good_mols) == 0: 
+        self._log_status(
+            len(mols),
+            offset_idx,
+            idx_non_valid_mols,
+            idx_non_valid_atypes,
+            idx_charged,
+            idx_no3d,
+            idx_noh,
+        )
+        if len(good_mols) == 0:
             raise ValueError("No valid molecules provided")
         return good_mols, list(fatal)
-    
-    def _log_status(self, num_mols, idx_non_valid_mols, idx_non_valid_atypes, idx_charged, idx_no3d, idx_noh):
+
+    def _log_status(
+        self,
+        num_mols,
+        offset_idx,
+        idx_non_valid_mols,
+        idx_non_valid_atypes,
+        idx_charged,
+        idx_no3d,
+        idx_noh,
+    ):
         if idx_non_valid_mols:
+            idx_non_valid_mols = {elem + offset_idx for elem in idx_non_valid_mols}
             LOGGER.warning(
                 f"""Invalid molecules at position(s) {idx_non_valid_mols}. Skipping."""
             )
         if idx_non_valid_atypes:
+            idx_non_valid_atypes = {elem + offset_idx for elem in idx_non_valid_atypes}
             LOGGER.warning(
                 f"""Found non-supported atomic no. in molecules at position 
                     {idx_non_valid_atypes}. This application currently supports 
@@ -259,66 +284,82 @@ class DelftaCalculator:
                 """
             )
         if idx_charged:
+            idx_charged = {elem + offset_idx for elem in idx_charged}
             LOGGER.warning(
                 f"""Found molecules with a non-zero formal charge at 
-                    positions {idx_charged}. This application currently does not support
+                    position(s) {idx_charged}. This application currently does not support
                     prediction for charged molecules. Skipping.
                 """
             )
+        already_skipped = set.union(
+            idx_non_valid_mols, idx_non_valid_atypes, idx_charged
+        )
         has_3d = np.ones(num_mols, dtype=bool)
         if idx_no3d:
-            has_3d[np.array(list(idx_no3d))]=False
+            has_3d[np.array(list(idx_no3d))] = False
         has_h = np.ones(num_mols, dtype=bool)
-        if idx_noh: 
-            has_h[np.array(list(idx_noh))]=False
-        
+        if idx_noh:
+            has_h[np.array(list(idx_noh))] = False
 
         # no hydrogens, no 3d
-        if np.any(~has_3d & ~has_h): 
+        if np.any(~has_3d & ~has_h):
             relevant_idx = np.where(~has_3d & ~has_h)[0].tolist()
-            if self.force3d and not self.addh: 
-                LOGGER.warning(
-                    f"""Molecules at position {relevant_idx} have no 3D conformations 
-                        and no hydrogens, but cannot `force3d` when `addh=False`. Skipping.
-                    """
-                )
-            elif self.force3d and self.addh and self.verbose: 
-                LOGGER.info(
-                    f"Assigned MMFF94 coordinates and added hydrogens to molecules with idx. {relevant_idx}"
-                )
-            elif not self.force3d and self.addh and self.verbose: 
-                LOGGER.info(
-                    f"""Added hydrogens to molecules with idx. {relevant_idx}. They do not 
-                    have 3D conformations available, but you didn't request to `force3d`."""
-                )
+            relevant_idx = [elem + offset_idx for elem in relevant_idx]
+            relevant_idx = [
+                elem for elem in relevant_idx if elem not in already_skipped
+            ]
+            if relevant_idx:
+                if self.force3d and not self.addh:
+                    LOGGER.warning(
+                        f"""Molecules at position(s) {relevant_idx} have no 3D conformations 
+                            and no hydrogens, but cannot `force3d` when `addh=False`. Skipping.
+                        """
+                    )
+                elif self.force3d and self.addh and self.verbose:
+                    LOGGER.info(
+                        f"Assigned MMFF94 coordinates and added hydrogens to molecules at position(s) {relevant_idx}"
+                    )
+                elif not self.force3d and self.addh and self.verbose:
+                    LOGGER.info(
+                        f"""Added hydrogens to molecules at position(s) {relevant_idx}. They do not 
+                        have 3D conformations available, but you didn't request to `force3d`."""
+                    )
 
         # no hydrogens, but 3D
         if np.any(has_3d & ~has_h):
             relevant_idx = np.where(has_3d & ~has_h)[0].tolist()
-            if self.addh and self.verbose: 
-                LOGGER.info(
-                    f"""Added hydrogens to molecules with idx. {relevant_idx}."""
-                )
-            elif not self.addh and self.verbose: 
-                LOGGER.info(
-                    f"""Molecules with idx. {relevant_idx} don't have hydrogens, but you didn't
-                    request to `addh`."""
-                )
+            relevant_idx = [elem + offset_idx for elem in relevant_idx]
+            relevant_idx = [
+                elem for elem in relevant_idx if elem not in already_skipped
+            ]
+            if relevant_idx:
+                if self.addh and self.verbose:
+                    LOGGER.info(
+                        f"""Added hydrogens to molecules at position(s) {relevant_idx}."""
+                    )
+                elif not self.addh and self.verbose:
+                    LOGGER.info(
+                        f"""Molecules at position(s) {relevant_idx} don't have hydrogens, but you didn't
+                        request to `addh`."""
+                    )
 
         # hydrogens, but no 3d
         if np.any(~has_3d & has_h):
             relevant_idx = np.where(~has_3d & has_h)[0].tolist()
-            if self.force3d and self.verbose: 
-                LOGGER.info(
-                    f"""Assigned MMFF94 coordinates to molecules with idx. {relevant_idx}."""
-                )
-            elif not self.force3d and self.verbose: 
-                LOGGER.info(
-                    f"""Molecules with idx. {relevant_idx} don't have 3D conformations available,
-                     but you didn't request to `force3d`."""
-                )
-
-
+            relevant_idx = [elem + offset_idx for elem in relevant_idx]
+            relevant_idx = [
+                elem for elem in relevant_idx if elem not in already_skipped
+            ]
+            if relevant_idx:
+                if self.force3d and self.verbose:
+                    LOGGER.info(
+                        f"""Assigned MMFF94 coordinates to molecules at position(s) {relevant_idx}."""
+                    )
+                elif not self.force3d and self.verbose:
+                    LOGGER.info(
+                        f"""Molecules at position(s) {relevant_idx} don't have 3D conformations available,
+                        but you didn't request to `force3d`."""
+                    )
 
     def _get_preds(self, loader, model):
         """Returns predictions for the data contained in `loader` of a
@@ -378,11 +419,16 @@ class DelftaCalculator:
         if self.progress and not self.batch_mode:
             mols = tqdm(mols)
 
-        for mol in mols:
-            xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
-            for prop, val in xtb_out.items():
-                xtb_props[prop].append(val)
-        return xtb_props
+        fatal = []
+        for i, mol in enumerate(mols):
+            try:
+                xtb_out = run_xtb_calc(mol, opt=self.xtbopt)
+                for prop, val in xtb_out.items():
+                    xtb_props[prop].append(val)
+            except ValueError as xtb_error:
+                fatal.append(i)
+                LOGGER.warning(xtb_error.args[0])
+        return xtb_props, fatal
 
     def _inv_scale(self, preds, norm_dict):
         """Inverse min-max scaling transformation
@@ -422,12 +468,11 @@ class DelftaCalculator:
         """
         preds_batch = []
         done_flag = False
+        total_done_so_far = 0
         progress = tqdm()
-
         while not done_flag:
             mols = []
             done_so_far = 0
-
             for _ in range(batch_size):
                 try:
                     mol = next(generator)
@@ -440,8 +485,10 @@ class DelftaCalculator:
             if self.progress:
                 progress.update(n=done_so_far)
 
-            preds_batch.append(self.predict(mols, batch_size))
-
+            preds_batch.append(
+                self.predict(mols, batch_size, offset_idx=total_done_so_far)
+            )
+            total_done_so_far += done_so_far
         progress.close()
 
         pred_keys = preds_batch[0].keys()
@@ -457,7 +504,7 @@ class DelftaCalculator:
 
         return dict(preds)
 
-    def predict(self, input_, batch_size=32):
+    def predict(self, input_, batch_size=32, offset_idx=0):
         """Main prediction method for DFT observables.
 
         Parameters
@@ -466,21 +513,29 @@ class DelftaCalculator:
             Either a single or a list of OEChem Molecule instances or a pybel filereader generator instance.
         batch_size : int, optional
             Batch size used for prediction, by default 32
+        offset_idx: int, optional
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
 
         Returns
         -------
         dict
             Requested DFT-predicted properties.
         """
+        fatal_xtb, fatal = [], []
+
         if isinstance(input_, openbabel.pybel.Molecule):
             return self.predict([input_])
 
         elif isinstance(input_, list):
-            mols, fatal = self._preprocess(input_)
+            mols, fatal = self._preprocess(input_, offset_idx=offset_idx)
 
         elif isinstance(input_, types.GeneratorType):
             self.batch_mode = True
             return self._predict_batch(input_, batch_size)
+
+        elif isinstance(input_, str):
+            ext = os.path.splitext(input_)[-1].lstrip(".")
+            return self.predict(openbabel.pybel.readfile(ext, input_))
 
         else:
             raise ValueError(
@@ -488,8 +543,10 @@ class DelftaCalculator:
             )
 
         if self.delta:
-            xtb_props = self._get_xtb_props(mols)  # TODO --> add error propagation
-
+            xtb_props, fatal_xtb = self._get_xtb_props(
+                mols
+            )  # TODO --> add error propagation
+            mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
@@ -554,29 +611,36 @@ class DelftaCalculator:
                         xtb_props[prop], dtype=np.float32
                     )
 
-        if fatal:
-            # insert placeholder values where errors occurred
-            idx_success = np.setdiff1d(np.arange(len(input_)), fatal)
+        if fatal_xtb:  # insert placeholder values where xtb errors occurred
+            preds_filtered = self.insert_placeholders(
+                preds_filtered, len(input_) - len(fatal), fatal_xtb
+            )
 
-            for key, val in preds_filtered.items():
-                if key == "charges":
-                    idx_charge = 0
-                    temp = []
-                    for idx in range(len(input_)):
-                        if idx in fatal:
-                            temp.append(np.array(PLACEHOLDER))
-                        else:
-                            temp.append(val[idx_charge])
-                            idx_charge += 1
+        if fatal:  # insert placeholder values where other errors occurred
+            preds_filtered = self.insert_placeholders(
+                preds_filtered, len(input_), fatal
+            )
 
-                else:
-                    temp = np.zeros(len(input_), dtype=np.float32)
-                    temp[idx_success] = val
-                    temp[fatal] = PLACEHOLDER
-                
-                preds_filtered[key] = temp
-                
         return preds_filtered
+
+    def insert_placeholders(self, preds, len_input, fatal):
+        idx_success = np.setdiff1d(np.arange(len_input), fatal)
+        for key, val in preds.items():
+            if key == "charges":
+                idx_charge = 0
+                temp = []
+                for idx in range(len_input):
+                    if idx in fatal:
+                        temp.append(np.array(PLACEHOLDER))
+                    else:
+                        temp.append(val[idx_charge])
+                        idx_charge += 1
+            else:
+                temp = np.zeros(len_input, dtype=np.float32)
+                temp[idx_success] = val
+                temp[fatal] = PLACEHOLDER
+            preds[key] = temp
+        return preds
 
 
 if __name__ == "__main__":
