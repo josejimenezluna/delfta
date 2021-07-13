@@ -1,12 +1,13 @@
-import os
 import glob
-from openbabel.pybel import readfile, Outputfile
-import numpy as np
-from sklearn.metrics import mean_absolute_error
+import os
+import random
 import tempfile
+
+import numpy as np
 from delfta.calculator import DelftaCalculator
 from delfta.utils import TESTS_PATH
-import random
+from openbabel.pybel import Outputfile, readfile
+from sklearn.metrics import mean_absolute_error
 
 DELFTA_TO_DFT_KEYS = {
     "E_form": "DFT:FORMATION_ENERGY",
