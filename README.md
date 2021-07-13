@@ -1,4 +1,4 @@
-# DelFTa: Open-source $\Delta$-quantum machine learning
+# DelFTa: Open-source Δ-quantum machine learning
 ![](docs/delfta_overview.png)
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
