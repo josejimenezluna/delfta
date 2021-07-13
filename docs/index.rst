@@ -74,7 +74,7 @@ Here's a simple example of how to run a calculation for a single molecule create
 
     # create an Openbabel molecule
     from openbabel.pybel import readstring
-    mol = reastring("smi", "CCO")
+    mol = readstring("smi", "CCO")
 
     # run the prediction
     from delfta.calculator import DelftaCalculator
@@ -82,8 +82,9 @@ Here's a simple example of how to run a calculation for a single molecule create
     preds = calc.predict(mol)
 
     print(preds)
+    # >> {'E_homo': array([-0.35119605], dtype=float32), 'E_lumo': array([0.18145496], dtype=float32), 'E_gap': array([0.53317], dtype=float32), 'dipole': array([1.6470299], dtype=float32), 'E_form': array([-1.5151836], dtype=float32), 'charges': [array([-0.10071784,  0.13719846, -0.35453772,  0.0452125 ,  0.03470724, 0.02626099,  0.0383979 ,  0.01741201,  0.16891802])]}
 
-You can also generate Openbabel molecules by *e.g.*, reading from a file to include atom coordinates. See the `Openbabel documentation <https://openbabel.org/docs/dev/UseTheLibrary/Python_Pybel.html>`__
+You can also generate Openbabel molecules by *e.g.*, reading from a file to include atom coordinates. See the `Openbabel documentation <https://openbabel.org/docs/dev/UseTheLibrary/Python_Pybel.html>`__ for more information. 
 
 Further documentation on how to use the package is available under
 `ReadTheDocs <http://toinclude.html>`__.
@@ -91,10 +92,10 @@ Further documentation on how to use the package is available under
 Tutorials
 ---------
 
-Several tutorials can be found under the ``tutorial`` subfolder. These
-include:
+In-depth tutorials can be found in the ``tutorials`` subfolder. These include: 
 
-TODO
+- ``delta_vs_direct.ipynb``: This showcases the basics of how to run the calculator, and compares results using direct- and :math:`\Delta`-learning models. 
+- ``calculator_options.ipynb``: This dives into the different options you can initialize the calculator class with. 
 
 Citation
 --------

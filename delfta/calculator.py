@@ -48,7 +48,7 @@ class DelftaCalculator:
         force3d : bool, optional
             Whether to assign 3D coordinates to molecules lacking them, by default True
         addh : bool, optional
-            Whether to add hydrogens to molecules lacking them, by default False
+            Whether to add hydrogens to molecules lacking them, by default True
         xtbopt : bool, optional
             Whether to perform GFN2-xTB geometry optimization, by default False
         verbose : bool, optional
@@ -96,16 +96,17 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _molcheck(self, mol):
-        """Sanity checks OEChem mol.
+        """Checks if `mol` is a valid molecule.
 
         Parameters
         ----------
-        mol : openbabel.pybel.Molecule
+        mol : any
+            Any type, but should be openbabel.pybel.Molecule
 
         Returns
         -------
         bool
-            Whether it passes basic sanity checks.
+            `True` if `mol` is a valid molecule, `False` otherwise.
         """
         return (
             isinstance(mol, openbabel.pybel.Molecule)
@@ -421,6 +422,8 @@ class DelftaCalculator:
         dict
             A dictionary containing the requested properties for
             `mols`.
+        list
+            A list of indices with molecules for which the xtb calculation failed.
         """
         xtb_props = collections.defaultdict(list)
 
@@ -528,7 +531,7 @@ class DelftaCalculator:
         batch_size : int, optional
             Batch size used for prediction, by default 32
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. Don't set manually.
 
         Returns
         -------
@@ -636,13 +639,13 @@ class DelftaCalculator:
         return preds_filtered
 
     def _insert_placeholders(self, preds, len_input, fatal):
-        """Introduces `np.nan` values for molecules that fail to pass
-        sanity checks.
+        """Restore the excepted shape of the output by inserting PLACEHOLDER
+        at the places where errors occurred. 
 
         Parameters
         ----------
         preds : dict
-            Dictionary with predicted values
+            Dictionary with predicted values from DelftaCalculator.predict
         len_input : int
             Length of the input list before removing faulty molecules
         fatal : [int]

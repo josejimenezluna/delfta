@@ -1,4 +1,5 @@
-# DelFTa: Open-source delta-quantum machine learning
+# DelFTa: Open-source $\Delta$-quantum machine learning
+![](docs/delfta_overview.png)
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/josejimenezluna/delfta/branch/master/graph/badge.svg?token=kMkZiUi0DZ)](https://codecov.io/gh/josejimenezluna/delfta)
@@ -8,7 +9,7 @@
 
 ### Pre-requisites
 
-Currently supported OSs include both Linux and Mac OS (10.5, x86_64 only). Basic build tools (_e.g_. make) are currently required for installation. Under Ubuntu, for instance, these are available under the `build-essential` package. The required package might be named differently on different distributions.
+Currently supported operating systems include both Linux and macOS (x86_64 only). Basic build tools (_e.g_. make) are currently required for installation. Under Ubuntu, for instance, these are available under the `build-essential` package. The required package might be named differently on different distributions.
 
 While the Linux installation fully supports GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS.
 
@@ -51,10 +52,10 @@ docker run -it delfta bash
 
 ```python
 from openbabel.pybel import readstring
-mol = reastring("smi", "CCO")
+mol = readstring("smi", "CCO")
 
 from delfta.calculator import DelftaCalculator
-calc = DelftaCalculator(tasks=["E_form", "E_homo"])
+calc = DelftaCalculator(tasks="all")
 preds = calc.predict(mol)
 
 print(preds)
@@ -66,9 +67,11 @@ Further documentation on how to use the package is available under [ReadTheDocs]
 
 ## Tutorials
 
-Several tutorials can be found under the `tutorial` subfolder. These include:
+In-depth tutorials can be found in the `tutorials` subfolder. These include: 
 
-TODO
+- [delta_vs_direct.ipynb](tutorials/delta_vs_direct.ipynb): This showcases the basics of how to run the calculator, and compares results using direct- and :math:`\Delta`-learning models. 
+- [calculator_options.ipynb](tutorials/calculator_options.ipynb): This dives into the different options you can initialize the calculator class with. 
+
 
 ## Citation
 
