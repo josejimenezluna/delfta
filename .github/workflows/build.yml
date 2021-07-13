@@ -35,5 +35,5 @@ jobs:
           chmod +x codecov
         name: test
       - run: |
-         pytest --cov=delfta --cov-config=.coveragerc tests/
-         ./codecov -t ${{ secrets.CODECOV_TOKEN }}
+          pytest --cov=delfta --cov-config=.coveragerc --cov-report=xml tests/
+          ./codecov -t ${{ secrets.CODECOV_TOKEN }}
