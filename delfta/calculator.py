@@ -101,7 +101,7 @@ class DelftaCalculator:
         Parameters
         ----------
         mol : any
-            Any type, but should be OBMol
+            Any type, but should be openbabel.pybel.Molecule
 
         Returns
         -------
@@ -215,7 +215,7 @@ class DelftaCalculator:
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
 
         """
         if len(mols) == 0:
@@ -495,6 +495,9 @@ class DelftaCalculator:
                 except StopIteration:
                     done_flag = True
                     break
+                except:
+                    mols.append(PLACEHOLDER)  # invalid mol
+                    done_so_far += 1
 
             if self.progress:
                 progress.update(n=done_so_far)
@@ -642,16 +645,16 @@ class DelftaCalculator:
         Parameters
         ----------
         preds : dict
-            predictions from DelftaCalculator.predict
+            Dictionary with predicted values from DelftaCalculator.predict
         len_input : int
-            number of input molecules
-        fatal : list
-            A list of indices for which errors occurred.
+            Length of the input list before removing faulty molecules
+        fatal : [int]
+            Indices of the faulty molecules
 
         Returns
         -------
         dict
-            predictions with inserted PLACEHOLDER
+            Dictionary with predicted values and placeholders for faulty molecules
         """
         idx_success = np.setdiff1d(np.arange(len_input), fatal)
         for key, val in preds.items():

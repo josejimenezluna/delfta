@@ -1,12 +1,13 @@
-import os
 import glob
-from openbabel.pybel import readfile, Outputfile
-import numpy as np
-from sklearn.metrics import mean_absolute_error
+import os
+import random
 import tempfile
+
+import numpy as np
 from delfta.calculator import DelftaCalculator
 from delfta.utils import TESTS_PATH
-import random
+from openbabel.pybel import Outputfile, readfile
+from sklearn.metrics import mean_absolute_error
 
 DELFTA_TO_DFT_KEYS = {
     "E_form": "DFT:FORMATION_ENERGY",
@@ -41,7 +42,9 @@ def test_invalid_mols_list():
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(list(mols), random.randint(0, len(mols)))
+    predictions_delta = calc_delta.predict(
+        list(mols), batch_size=random.randint(1, len(mols))
+    )
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
