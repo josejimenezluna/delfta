@@ -96,6 +96,17 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _molcheck(self, mol):
+        """Sanity checks OEChem mol.
+
+        Parameters
+        ----------
+        mol : openbabel.pybel.Molecule
+
+        Returns
+        -------
+        bool
+            Whether it passes basic sanity checks.
+        """
         return (
             isinstance(mol, openbabel.pybel.Molecule)
             and (mol.OBMol is not None)
@@ -203,7 +214,7 @@ class DelftaCalculator:
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
 
         """
         if len(mols) == 0:
@@ -514,7 +525,7 @@ class DelftaCalculator:
         batch_size : int, optional
             Batch size used for prediction, by default 32
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
 
         Returns
         -------
@@ -543,9 +554,7 @@ class DelftaCalculator:
             )
 
         if self.delta:
-            xtb_props, fatal_xtb = self._get_xtb_props(
-                mols
-            )  # TODO --> add error propagation
+            xtb_props, fatal_xtb = self._get_xtb_props(mols)
             mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
