@@ -96,6 +96,17 @@ class DelftaCalculator:
         self.models = list(set(self.models))
 
     def _molcheck(self, mol):
+        """Sanity checks OEChem mol.
+
+        Parameters
+        ----------
+        mol : openbabel.pybel.Molecule
+
+        Returns
+        -------
+        bool
+            Whether it passes basic sanity checks.
+        """
         return (
             isinstance(mol, openbabel.pybel.Molecule)
             and (mol.OBMol is not None)
@@ -203,7 +214,7 @@ class DelftaCalculator:
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
 
         """
         if len(mols) == 0:
@@ -517,7 +528,7 @@ class DelftaCalculator:
         batch_size : int, optional
             Batch size used for prediction, by default 32
         offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. 
+            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
 
         Returns
         -------
@@ -546,9 +557,7 @@ class DelftaCalculator:
             )
 
         if self.delta:
-            xtb_props, fatal_xtb = self._get_xtb_props(
-                mols
-            )  # TODO --> add error propagation
+            xtb_props, fatal_xtb = self._get_xtb_props(mols)
             mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
         data = DeltaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
@@ -615,18 +624,35 @@ class DelftaCalculator:
                     )
 
         if fatal_xtb:  # insert placeholder values where xtb errors occurred
-            preds_filtered = self.insert_placeholders(
+            preds_filtered = self._insert_placeholders(
                 preds_filtered, len(input_) - len(fatal), fatal_xtb
             )
 
         if fatal:  # insert placeholder values where other errors occurred
-            preds_filtered = self.insert_placeholders(
+            preds_filtered = self._insert_placeholders(
                 preds_filtered, len(input_), fatal
             )
 
         return preds_filtered
 
-    def insert_placeholders(self, preds, len_input, fatal):
+    def _insert_placeholders(self, preds, len_input, fatal):
+        """Introduces `np.nan` values for molecules that fail to pass
+        sanity checks.
+
+        Parameters
+        ----------
+        preds : dict
+            Dictionary with predicted values
+        len_input : int
+            Length of the input list before removing faulty molecules
+        fatal : [int]
+            Indices of the faulty molecules
+
+        Returns
+        -------
+        dict
+            Dictionary with predicted values and placeholders for faulty molecules
+        """
         idx_success = np.setdiff1d(np.arange(len_input), fatal)
         for key, val in preds.items():
             if key == "charges":
