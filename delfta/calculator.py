@@ -621,18 +621,35 @@ class DelftaCalculator:
                     )
 
         if fatal_xtb:  # insert placeholder values where xtb errors occurred
-            preds_filtered = self.insert_placeholders(
+            preds_filtered = self._insert_placeholders(
                 preds_filtered, len(input_) - len(fatal), fatal_xtb
             )
 
         if fatal:  # insert placeholder values where other errors occurred
-            preds_filtered = self.insert_placeholders(
+            preds_filtered = self._insert_placeholders(
                 preds_filtered, len(input_), fatal
             )
 
         return preds_filtered
 
-    def insert_placeholders(self, preds, len_input, fatal):
+    def _insert_placeholders(self, preds, len_input, fatal):
+        """Introduces `np.nan` values for molecules that fail to pass
+        sanity checks.
+
+        Parameters
+        ----------
+        preds : dict
+            Dictionary with predicted values
+        len_input : int
+            Length of the input list before removing faulty molecules
+        fatal : [int]
+            Indices of the faulty molecules
+
+        Returns
+        -------
+        dict
+            Dictionary with predicted values and placeholders for faulty molecules
+        """
         idx_success = np.setdiff1d(np.arange(len_input), fatal)
         for key, val in preds.items():
             if key == "charges":
