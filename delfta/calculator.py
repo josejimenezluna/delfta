@@ -481,6 +481,9 @@ class DelftaCalculator:
                 except StopIteration:
                     done_flag = True
                     break
+                except:
+                    mols.append(PLACEHOLDER)  # invalid mol
+                    done_so_far += 1
 
             if self.progress:
                 progress.update(n=done_so_far)

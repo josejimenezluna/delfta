@@ -41,7 +41,9 @@ def test_invalid_mols_list():
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(list(mols), random.randint(0, len(mols)))
+    predictions_delta = calc_delta.predict(
+        list(mols), batch_size=random.randint(1, len(mols))
+    )
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
