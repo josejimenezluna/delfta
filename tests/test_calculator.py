@@ -8,6 +8,7 @@ from delfta.calculator import DelftaCalculator
 from delfta.utils import TESTS_PATH
 from openbabel.pybel import Outputfile, readfile
 from sklearn.metrics import mean_absolute_error
+import scipy
 
 DELFTA_TO_DFT_KEYS = {
     "E_form": "DFT:FORMATION_ENERGY",
@@ -197,3 +198,31 @@ def test_calculator():
         dft_vals = np.array(dft_values[DELFTA_TO_DFT_KEYS[key]])
         assert mean_absolute_error(pred_delta, dft_vals) < CUTOFFS[key][0]
         assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
+
+
+def test_xtb_opt():
+    benzene_distorted = os.path.join(
+        TESTS_PATH, "mols_xtb_opt", "benzene_distorted.xyz"
+    )
+    mol = next(readfile("xyz", benzene_distorted))
+    old_coords = np.array([atom.coords for atom in mol.atoms])
+
+    deltas = [True, False]
+    for delta in deltas:
+        calc_delta = DelftaCalculator(
+            tasks=["E_form"], delta=delta, xtbopt=True, return_optmols=True
+        )
+        _, opt_mols = calc_delta.predict(mol)
+        new_coords = np.array([atom.coords for atom in opt_mols[0].atoms])
+        A = np.c_[new_coords[:, 0], new_coords[:, 1], np.ones(new_coords.shape[0])]
+        C, _, _, _ = scipy.linalg.lstsq(A, new_coords[:, 2])  # coefficients
+        Z = C[0] * new_coords[:, 0] + C[1] * new_coords[:, 1] + C[2]
+        Z - new_coords[:, 2]
+        assert ~np.all(np.equal(old_coords, new_coords))  # coordinates were modified
+        assert np.all(
+            np.isclose(0, Z - new_coords[:, 2], atol=1e-2)
+        )  # molecule is planar
+
+
+if __name__ == "__main__":
+    test_xtb_opt()
