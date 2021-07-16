@@ -1,6 +1,6 @@
 package:
   name: "delfta"
-  version: "v0.2"
+  version: "v0.3"
 
 source:
   path: ../
@@ -8,26 +8,24 @@ source:
 
 requirements:
   host:
-    - python
+    - python {{ python }}
     - setuptools
 
   run:
     - joblib=1.0.1
-    - matplotlib=3.3.2
-    - numpy=1.19.2
-    - pandas=1.1.3
-    - pip=20.2.4
-    - python=3.7.4
-    - scikit-learn=0.23.2
-    - scipy=1.5.2
-    - tqdm=4.51.0
+    - matplotlib>=3.3.2
+    - numpy>=1.19.2
+    - pandas>=1.1.3
+    - pip>=20.2.4
+    - python
+    - scikit-learn>=0.23.2
+    - scipy>=1.5.2
+    - tqdm>=4.51.0
     - pytorch=1.8.0
     - pytorch-geometric=1.7.2
-    - torchvision
-    - torchaudio
-    - cudatoolkit=10.2
-    - openbabel=3.1.1
-    - h5py=3.2.1
+    - cudatoolkit=10.2  # [linux64 or win64]
+    - openbabel>=3.1.1
+    - h5py>=3.2.1
     - xtb=6.4.1
 
 
