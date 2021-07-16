@@ -72,6 +72,9 @@ class DelftaCalculator:
         self.return_optmols = return_optmols
         self.batch_mode = False
 
+        if self.return_optmols and not self.xtbopt:
+            raise ValueError("Only can use return_optmols in combination with xtbopt")
+
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
 
@@ -524,13 +527,13 @@ class DelftaCalculator:
                 preds_this_batch, opt_mols_this_batch = self.predict(
                     mols, batch_size, offset_idx=total_done_so_far
                 )
-                preds_batch.append(preds_this_batch)
                 opt_mols_batch.extend(opt_mols_this_batch)
             else:
                 preds_this_batch = self.predict(
                     mols, batch_size, offset_idx=total_done_so_far
                 )
-                preds_batch.append(preds_this_batch)
+
+            preds_batch.append(preds_this_batch)
             total_done_so_far += done_so_far
         progress.close()
 
@@ -576,6 +579,8 @@ class DelftaCalculator:
             mols, fatal = self._preprocess(input_, offset_idx=offset_idx)
 
         elif isinstance(input_, types.GeneratorType):
+            if self.return_optmols:
+                LOGGER.warning("Using return_optmol flag with a generator. This might cause memory issues if the input file is large.")
             self.batch_mode = True
             return self._predict_batch(input_, batch_size)
 
@@ -588,14 +593,10 @@ class DelftaCalculator:
                 f"Invalid input. Expected OEChem molecule, list or generator, but got {type(input_)}."
             )
 
-        if self.xtbopt and self.delta:
+        if self.xtbopt:
             xtb_props, fatal_xtb, mols = self._get_xtb_props(mols)
-        elif self.xtbopt and not self.delta:
-            _, fatal_xtb, mols = self._get_xtb_props(mols)
         elif not self.xtbopt and self.delta:
             xtb_props, fatal_xtb = self._get_xtb_props(mols)
-        elif not self.xtbopt and not self.delta:
-            pass  # don't need to run xtb if neither self.xtbopt not self.delta
 
         mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
         data = DeltaDataset(mols)
@@ -753,19 +754,17 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--csv",
-        type=bool,
         dest="csv",
-        required=False,
         default=False,
+        action="store_true",
         help="Whether to write the results as csv file instead of the default json, by default False",
     )
     parser.add_argument(
-        "--delta",
-        type=bool,
+        "--direct",
         dest="delta",
-        required=False,
         default=True,
-        help="Whether to use delta-learning models, by default `True`",
+        action="store_false",
+        help="Whether to use direct-learning models, by default `False`",
     )
     parser.add_argument(
         "--batch_size",
@@ -776,85 +775,58 @@ if __name__ == "__main__":
         help="Batch size used for prediction of large files",
     )
     parser.add_argument(
-        "--force3d",
-        type=bool,
-        default=True,
-        help="Whether to assign 3D coordinates to molecules lacking them, by default True",
+        "--noforce3d",
         dest="force3d",
-        required=False,
+        default=True,
+        action="store_false",
+        help="Don't assign 3D coordinates to molecules lacking them",
     )
     parser.add_argument(
-        "--addh",
-        type=bool,
+        "--noaddh",
         default=True,
-        help="Whether to add hydrogens to molecules lacking them, by default True",
+        action="store_false",
+        help="Don't add hydrogens to molecules lacking them",
         dest="addh",
-        required=False,
     )
     parser.add_argument(
         "--xtbopt",
-        type=bool,
         dest="xtbopt",
-        required=False,
         default=False,
+        action="store_true",
         help="Whether to perform GFN2-xTB geometry optimization, by default False",
     )
     parser.add_argument(
-        "--verbose",
-        type=bool,
+        "--silent",
         dest="verbose",
-        required=False,
         default=True,
-        help="Enables/disables stdout logger, by default True",
+        action="store_false",
+        help="Disables stdout logger",
     )
-    parser.add_argument(
-        "--progress",
-        type=bool,
-        dest="progress",
-        required=False,
-        default=True,
-        help="Enables/disables progress bars in prediction, by default True",
-    )
+
     parser.add_argument(
         "--optmols_outfile",
         type=str,
         dest="optmols_outfile",
         required=False,
-        default="False",
+        default=False,
         help="Enables returning the optimized molecules (use in combination with xtbopt) to the specified file. Needs to be valid Openbabel output format.",
     )
 
-    parser.add_argument(
-        "--overwrite",
-        type=bool,
-        dest="overwrite",
-        required=False,
-        default=False,
-        help="Enables/disables overwriting existing output files.",
-    )
-
     args = parser.parse_args()
-    return_optmols = False if args.optmols_outfile == "False" else True
+    return_optmols = True if args.optmols_outfile else False
 
     if args.smiles is None and args.infile is None:
         raise ValueError(
             "Either a SMILES string or a path to an openbabel-readable file with the --infile flag should be provided."
         )
 
-    if os.path.exists(args.outfile) and not args.overwrite:
-        raise ValueError("Output file exists. Use `--overwrite True` to overwrite.")
-    if (
-        args.optmols_outfile != "False"
-        and os.path.exists(args.optmols_outfile)
-        and not args.overwrite
-    ):
-        raise ValueError("optmols_outfile exists. Use `--overwrite True` to overwrite.")
 
     if args.smiles is not None:
         input_ = readstring("smi", args.smiles)
     else:
         ext = os.path.splitext(args.infile)[1].lstrip(".")
         input_ = readfile(ext, args.infile)
+
     calc = DelftaCalculator(
         tasks=args.tasks,
         delta=args.delta,
@@ -862,7 +834,6 @@ if __name__ == "__main__":
         addh=args.addh,
         xtbopt=args.xtbopt,
         verbose=args.verbose,
-        progress=args.progress,
         return_optmols=return_optmols,
     )
 
@@ -870,19 +841,20 @@ if __name__ == "__main__":
         preds, opt_mols = calc.predict(input_, batch_size=args.batch_size)
     else:
         preds = calc.predict(input_, batch_size=args.batch_size)
+
     preds_list = preds_to_lists(preds)
 
     if args.csv:
         df = pd.DataFrame(preds)
         df = df[sorted(df.columns.tolist(), key=lambda x: COLUMN_ORDER[x])]
-        df.to_csv(args.outfile)
+        df.to_csv(args.outfile, index=None)
     else:
         with open(args.outfile, "w", encoding="utf-8") as f:
             json.dump(preds_list, f, ensure_ascii=False, indent=4)
 
-    if args.optmols_outfile != "False":
+    if args.optmols_outfile:
         ext = os.path.splitext(args.optmols_outfile)[1].lstrip(".")
-        outfile = Outputfile(ext, args.optmols_outfile, overwrite=args.overwrite)
+        outfile = Outputfile(ext, args.optmols_outfile, overwrite=True)
 
         for mol in opt_mols:
             outfile.write(mol)
