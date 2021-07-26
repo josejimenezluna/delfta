@@ -72,9 +72,6 @@ class DelftaCalculator:
         self.return_optmols = return_optmols
         self.batch_mode = False
 
-        if self.return_optmols and not self.xtbopt:
-            raise ValueError("Only can use return_optmols in combination with xtbopt")
-
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
 
@@ -580,7 +577,9 @@ class DelftaCalculator:
 
         elif isinstance(input_, types.GeneratorType):
             if self.return_optmols:
-                LOGGER.warning("Using return_optmol flag with a generator. This might cause memory issues if the input file is large.")
+                LOGGER.warning(
+                    "Using return_optmol flag with a generator. This might cause memory issues if the input file is large."
+                )
             self.batch_mode = True
             return self._predict_batch(input_, batch_size)
 
@@ -819,7 +818,6 @@ if __name__ == "__main__":
         raise ValueError(
             "Either a SMILES string or a path to an openbabel-readable file with the --infile flag should be provided."
         )
-
 
     if args.smiles is not None:
         input_ = readstring("smi", args.smiles)
