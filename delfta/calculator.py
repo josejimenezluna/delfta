@@ -580,7 +580,9 @@ class DelftaCalculator:
 
         elif isinstance(input_, types.GeneratorType):
             if self.return_optmols:
-                LOGGER.warning("Using return_optmol flag with a generator. This might cause memory issues if the input file is large.")
+                LOGGER.warning(
+                    "Using return_optmol flag with a generator. This might cause memory issues if the input file is large."
+                )
             self.batch_mode = True
             return self._predict_batch(input_, batch_size)
 
@@ -609,7 +611,10 @@ class DelftaCalculator:
                 LOGGER.info(f"Now running network for model {model_name}...")
             model_param = MODEL_HPARAMS[model_name]
             model = EGNN(
-                n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
+                n_outputs=model_param.n_outputs,
+                global_prop=model_param.global_prop,
+                n_kernels=model_param.n_kernels,
+                mlp_dim=model_param.mlp_dim,
             ).eval()
             weights = get_model_weights(model_name)
             model.load_state_dict(weights)
@@ -819,7 +824,6 @@ if __name__ == "__main__":
         raise ValueError(
             "Either a SMILES string or a path to an openbabel-readable file with the --infile flag should be provided."
         )
-
 
     if args.smiles is not None:
         input_ = readstring("smi", args.smiles)

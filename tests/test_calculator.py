@@ -222,7 +222,3 @@ def test_xtb_opt():
         assert np.all(
             np.isclose(0, Z - new_coords[:, 2], atol=1e-2)
         )  # molecule is planar
-
-
-if __name__ == "__main__":
-    test_xtb_opt()

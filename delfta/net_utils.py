@@ -7,17 +7,17 @@ from torch_geometric.data import Data, Dataset
 from torch_geometric.utils import add_self_loops
 from torch_geometric.utils.undirected import to_undirected
 
-hparam = namedtuple('hparam', ['n_outputs', 'global_prop'])
+hparam = namedtuple("hparam", ["n_outputs", "global_prop", "n_kernels", "mlp_dim"])
 
 MULTITASK_ENDPOINTS = {"E_homo": 1, "E_lumo": 2, "E_gap": 3, "dipole": 4}
 
 MODEL_HPARAMS = {
-    "multitask_delta": hparam(5, True),
-    "single_energy_delta": hparam(1, True),
-    "charges_delta": hparam(1, False),
-    "multitask_direct": hparam(5, True),
-    "single_energy_direct": hparam(1, True),
-    "charges_direct": hparam(1, False),
+    "multitask_delta": hparam(5, True, 5, 256),
+    "single_energy_delta": hparam(1, True, 4, 1024),
+    "charges_delta": hparam(1, False, 5, 256),
+    "multitask_direct": hparam(5, True, 5, 256),
+    "single_energy_direct": hparam(1, True, 5, 256),
+    "charges_direct": hparam(1, False, 5, 256),
 }
 
 QMUGS_ATOM_DICT = {
@@ -31,7 +31,7 @@ QMUGS_ATOM_DICT = {
     17: 8,
     35: 9,
     53: 10,
-} # atomic number --> index
+}  # atomic number --> index
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
