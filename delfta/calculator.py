@@ -608,7 +608,10 @@ class DelftaCalculator:
                 LOGGER.info(f"Now running network for model {model_name}...")
             model_param = MODEL_HPARAMS[model_name]
             model = EGNN(
-                n_outputs=model_param.n_outputs, global_prop=model_param.global_prop
+                n_outputs=model_param.n_outputs,
+                global_prop=model_param.global_prop,
+                n_kernels=model_param.n_kernels,
+                mlp_dim=model_param.mlp_dim,
             ).eval()
             weights = get_model_weights(model_name)
             model.load_state_dict(weights)
