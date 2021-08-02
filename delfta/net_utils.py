@@ -35,10 +35,8 @@ QMUGS_ATOM_DICT = {
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# TODO Ken: Add dict with final normalization values for multitask learning
 
-
-class DeltaDataset(Dataset):
+class DelftaDataset(Dataset):
     def __init__(self, mols):
         """Base Dataset class for delfta
 

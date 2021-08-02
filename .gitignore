@@ -5,6 +5,7 @@ data/
 *.json
 *.pyc
 *.tar.gz
+*.pt
 .vscode/
 notebooks/
 

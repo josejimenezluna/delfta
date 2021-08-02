@@ -15,7 +15,7 @@ from delfta.net_utils import (
     MODEL_HPARAMS,
     MULTITASK_ENDPOINTS,
     QMUGS_ATOM_DICT,
-    DeltaDataset,
+    DelftaDataset,
 )
 from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
@@ -598,7 +598,7 @@ class DelftaCalculator:
             xtb_props, fatal_xtb = self._get_xtb_props(mols)
 
         mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
-        data = DeltaDataset(mols)
+        data = DelftaDataset(mols)
         loader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
         preds = {}

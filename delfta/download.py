@@ -16,8 +16,8 @@ DATASETS = {
     "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
 }
 
-# Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
-DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/mhvl0SaasXBxb3T/download"
+# TODO Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
+DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
 
 MODELS = {
     "multitask_delta": os.path.join(MODEL_PATH, "multitask_delta.pt"),
@@ -28,7 +28,7 @@ MODELS = {
     "charges_direct": os.path.join(MODEL_PATH, "charges_direct.pt"),
 }
 
-# Load models trained on 100k. Final sets to be added in the end.
+# TODO Load models trained on 100k. Final sets to be added in the end.
 MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"

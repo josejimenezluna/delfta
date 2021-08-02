@@ -1,12 +1,12 @@
 from delfta.net import EGNN
-from delfta.net_utils import MODEL_HPARAMS, DeltaDataset
+from delfta.net_utils import MODEL_HPARAMS, DelftaDataset
 from openbabel.pybel import readstring
 from torch_geometric.data.dataloader import DataLoader
 
 
 def test_net_outshape():
     mol = readstring("smi", "CCO")
-    data = DeltaDataset([mol])
+    data = DelftaDataset([mol])
     loader = DataLoader(data, batch_size=1, shuffle=False)
     batch = next(iter(loader))
 
