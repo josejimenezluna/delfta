@@ -23,7 +23,3 @@ def test_get_model_weights():
     for name in MODELS.keys():
         _ = get_model_weights(name)
 
-
-def test_get_dataset():
-    for name in DATASETS.keys():
-        _ = get_dataset(name)
