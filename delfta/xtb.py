@@ -79,6 +79,32 @@ def get_homo_and_lumo_energies(data):
     return E_homo, E_lumo
 
 
+def get_wbo(wbo_file, mol):
+    """Reads WBO output file from xTB and generates a dictionary with the results. 
+
+    Parameters
+    ----------
+    wbo_file : str
+        path to xTB wbo putput file
+    mol : openbabel.pybel
+        molecule
+
+    Returns
+    -------
+    list
+        list with Wiberg bond orders (only covalent bonds)
+    """
+    with open(wbo_file, "r") as f:
+        lines = [elem.rstrip("\n") for elem in f.readlines()]
+    tmp = [[int(line[:12]), int(line[12:24]), float(line[24:])] for line in lines]
+    wbo_dict = {f"{min((a1, a2))}-{max((a1, a2))}": wbo for a1, a2, wbo in tmp}
+    res = []
+    for bond in [mol.OBMol.GetBondById(i) for i in range(mol.OBMol.NumBonds())]:
+        a1, a2 = sorted((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
+        res.append(wbo_dict[f"{a1}-{a2}"])
+    return res
+
+
 def run_xtb_calc(mol, opt=False, return_optmol=False):
     """Runs xTB single-point calculation with optional geometry optimization.
 
@@ -112,6 +138,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
     temp_dir = tempfile.TemporaryDirectory()
     logfile = os.path.join(temp_dir.name, "xtb.log")
     xtb_out = os.path.join(temp_dir.name, "xtbout.json")
+    xtb_wbo = os.path.join(temp_dir.name, "wbo")
 
     sdf_path = os.path.join(temp_dir.name, "mol.sdf")
     sdf = pybel.Outputfile("sdf", sdf_path)
@@ -120,12 +147,11 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
 
     with open(logfile, "w") as f:
         xtb_run = subprocess.run(
-            [XTB_BINARY, sdf_path, xtb_command, "--input", XTB_INPUT_FILE],
+            [XTB_BINARY, sdf_path, xtb_command, "--input", XTB_INPUT_FILE, "--wbo"],
             stdout=f,
             stderr=subprocess.STDOUT,
             cwd=temp_dir.name,
         )
-
     if xtb_run.returncode != 0:
         error_out = os.path.join(temp_dir.name, "xtb.log")
         raise ValueError(f"xTB calculation failed. See {error_out} for details.")
@@ -136,5 +162,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
             opt_mol = next(
                 pybel.readfile("sdf", os.path.join(temp_dir.name, "xtbopt.sdf"))
             )
+        props.update({"wbo": get_wbo(xtb_wbo, mol)})
         temp_dir.cleanup()
         return (props, opt_mol) if return_optmol else props
+

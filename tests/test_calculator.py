@@ -17,6 +17,7 @@ DELFTA_TO_DFT_KEYS = {
     "E_gap": "DFT:HOMO_LUMO_GAP",
     "dipole": "DFT:DIPOLE",
     "charges": "DFT:MULLIKEN_CHARGES",
+    # "wbo": "DFT:WIBERG_LOWDIN_BOND_ORDER", # TODO: add once implemented
 }
 CUTOFFS = {
     "E_form": (0.005, 0.05),
@@ -25,6 +26,7 @@ CUTOFFS = {
     "E_gap": (0.005, 0.005),
     "dipole": (0.3, 0.4),
     "charges": (0.1, 0.1),
+    # "wbo": (0.01, 0.01), # TODO: add once implemented
 }
 
 
@@ -177,6 +179,7 @@ def test_calculator():
         "DFT:HOMO_LUMO_GAP",
         "DFT:DIPOLE",
         "DFT:MULLIKEN_CHARGES",
+        # "DFT:WIBERG_LOWDIN_BOND_ORDER", # TODO: add once implemented
     ]
     dft_values = {}
     for dft_key in dft_keys:
@@ -184,7 +187,10 @@ def test_calculator():
             dft_values[dft_key] = [
                 float(mol.data[dft_key].split("|")[-1]) for mol in mols
             ]
-        elif dft_key == "DFT:MULLIKEN_CHARGES":
+        elif (
+            dft_key == "DFT:MULLIKEN_CHARGES"
+            or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER"
+        ):
             dft_values[dft_key] = [
                 float(elem) for mol in mols for elem in mol.data[dft_key].split("|")
             ]
@@ -222,3 +228,7 @@ def test_xtb_opt():
         assert np.all(
             np.isclose(0, Z - new_coords[:, 2], atol=1e-2)
         )  # molecule is planar
+
+
+if __name__ == "__main__":
+    test_calculator()
