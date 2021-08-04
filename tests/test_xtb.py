@@ -9,7 +9,9 @@ from tqdm import tqdm
 
 
 def test_xtb_to_qmugs():
-    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
+    mol_files = sorted(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
+    )
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
 
@@ -38,3 +40,8 @@ def test_xtb_to_qmugs():
             float(elem) for elem in mol.data["GFN2:MULLIKEN_CHARGES"].split("|")
         ]
         assert np.allclose(props["charges"], charges_sdf, atol=1e-4)
+        wbo_sdf = [
+            float(elem) for elem in mol.data["GFN2:WIBERG_BOND_ORDER"].split("|")
+        ]
+        assert np.allclose(props["wbo"], wbo_sdf, atol=1e-3)
+
