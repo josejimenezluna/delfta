@@ -299,220 +299,215 @@ class EGNN_sparse(MessagePassing):
         return self.update(hidden_out, **update_kwargs)
 
 
-# #### WBO Network from here:
+class EGNNWBO(nn.Module):
+    def __init__(
+        self,
+        embedding_dim=128,
+        n_kernels=5,
+        n_mlp=3,
+        mlp_dim=256,
+        n_outputs=1,
+        m_dim=64,
+        initialize_weights=True,
+        fourier_features=32,
+        aggr="mean",
+    ):
+        super(EGNNWBO, self).__init__()
+
+        self.pos_dim = 3
+        self.m_dim = m_dim
+        self.embedding_dim = embedding_dim
+        self.n_kernels = n_kernels
+        self.n_mlp = n_mlp
+        self.mlp_dim = mlp_dim
+        self.n_outputs = n_outputs
+        self.initialize_weights = initialize_weights
+        self.fourier_features = fourier_features
+        self.aggr = aggr
+
+        # Embedding
+        self.embedding = nn.Embedding(
+            num_embeddings=11, embedding_dim=self.embedding_dim
+        )
+
+        # Node kernel
+        self.kernel_dim = self.embedding_dim
+        self.kernels = nn.ModuleList()
+        self.edge_kernels = nn.ModuleList()
+        for _ in range(self.n_kernels):
+            self.kernels.append(
+                EGNN_sparse_edge(
+                    feats_dim=self.kernel_dim,
+                    pos_dim=self.pos_dim,
+                    m_dim=self.m_dim,
+                    fourier_features=self.fourier_features,
+                    aggr=self.aggr,
+                )
+            )
+
+        # MLP 1
+        self.fnn = nn.ModuleList()
+        input_fnn = self.m_dim * self.n_kernels
+        self.fnn.append(nn.Linear(input_fnn, mlp_dim))
+        for _ in range(self.n_mlp - 1):
+            self.fnn.append(nn.Linear(self.mlp_dim, self.mlp_dim))
+        self.fnn.append(nn.Linear(self.mlp_dim, self.n_outputs))
+
+        # Initialize weights
+        if self.initialize_weights:
+            self.kernels.apply(weights_init)
+            self.fnn.apply(weights_init)
+            nn.init.xavier_uniform_(self.embedding.weight)
+
+    def forward(self, g_batch):
+        # Embedding
+        features = self.embedding(g_batch.atomids)
+        features = torch.cat([g_batch.coords, features], dim=1)
+
+        # Kernel
+        feature_list = []
+
+        for i in range(len(self.kernels)):
+            features, m_ij = self.kernels[i](x=features, edge_index=g_batch.edge_index,)
+            feature_list.append(m_ij)
+
+        # concat
+        features = F.silu(torch.cat(feature_list, dim=1))
+
+        # mlp 1
+        for mlp in self.fnn[:-1]:
+            features = F.silu(mlp(features))
+
+        # outputlayer
+        features = self.fnn[-1](features).squeeze(1)
+
+        return features
 
 
-# class DeltaNetWBO(nn.Module):
-#     def __init__(
-#         self,
-#         embedding_dim=128,
-#         n_kernels=3,
-#         n_mlp=4,
-#         mlp_dim=256,
-#         n_outputs=1,
-#         m_dim=32,
-#         initialize_weights=True,
-#         fourier_features=16,
-#         aggr="mean",
-#     ):
-#         super(DeltaNetWBO, self).__init__()
 
-#         self.pos_dim = 3
-#         self.m_dim = m_dim
-#         self.embedding_dim = embedding_dim
-#         self.n_kernels = n_kernels
-#         self.n_mlp = n_mlp
-#         self.mlp_dim = mlp_dim
-#         self.n_outputs = n_outputs
-#         self.initialize_weights = initialize_weights
-#         self.fourier_features = fourier_features
-#         self.aggr = aggr
+class EGNN_sparse_edge(MessagePassing):
+    def __init__(
+        self,
+        feats_dim,
+        pos_dim=3,
+        edge_attr_dim=0,
+        m_dim=32,
+        dropout=0.1,
+        fourier_features=32,
+        aggr="mean",
+        **kwargs,
+    ):
+        assert aggr in {
+            "add",
+            "sum",
+            "max",
+            "mean",
+        }, "pool method must be a valid option"
 
-#         # Embedding
-#         self.embedding = nn.Embedding(
-#             num_embeddings=11, embedding_dim=self.embedding_dim
-#         )
+        kwargs.setdefault("aggr", aggr)
+        super(EGNN_sparse_edge, self).__init__(**kwargs)
 
-#         # Node kernel
-#         self.kernel_dim = self.embedding_dim
-#         self.kernels = nn.ModuleList()
-#         self.edge_kernels = nn.ModuleList()
-#         for _ in range(self.n_kernels):
-#             self.kernels.append(
-#                 EGNN_sparse_edge(
-#                     feats_dim=self.kernel_dim,
-#                     pos_dim=self.pos_dim,
-#                     m_dim=self.m_dim,
-#                     fourier_features=self.fourier_features,
-#                     aggr=self.aggr,
-#                 )
-#             )
+        # Model parameters
+        self.feats_dim = feats_dim
+        self.pos_dim = pos_dim
+        self.m_dim = m_dim
+        self.fourier_features = fourier_features
 
-#         # MLP 1
-#         self.fnn = nn.ModuleList()
-#         input_fnn = self.m_dim * self.n_kernels
-#         self.fnn.append(nn.Linear(input_fnn, mlp_dim))
-#         for _ in range(self.n_mlp - 1):
-#             self.fnn.append(nn.Linear(self.mlp_dim, self.mlp_dim))
-#         self.fnn.append(nn.Linear(self.mlp_dim, self.n_outputs))
+        self.edge_input_dim = (
+            (self.fourier_features * 2) + edge_attr_dim + 1 + feats_dim
+        )
 
-#         # Initialize weights
-#         if self.initialize_weights:
-#             self.kernels.apply(weights_init)
-#             self.fnn.apply(weights_init)
-#             nn.init.xavier_uniform_(self.embedding.weight)
+        self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 
-#     def forward(self, g_batch):
-#         # Embedding
-#         features = self.embedding(g_batch.atomids)
-#         features = torch.cat([g_batch.coords, features], dim=1)
+        # Edge layers
+        self.edge_norm1 = nn.LayerNorm(m_dim)
+        self.edge_norm2 = nn.LayerNorm(m_dim)
 
-#         # Kernel
-#         feature_list = []
+        self.edge_mlp = nn.Sequential(
+            nn.Linear(self.edge_input_dim, self.edge_input_dim * 2),
+            self.dropout,
+            nn.SiLU(),
+            nn.Linear(self.edge_input_dim * 2, m_dim),
+            nn.SiLU(),
+        )
 
-#         for i in range(len(self.kernels)):
-#             features, m_ij = self.kernels[i](x=features, edge_index=g_batch.edge_index,)
-#             feature_list.append(m_ij)
+        # Node layers
+        self.node_norm1 = nn.LayerNorm(feats_dim)
+        self.node_norm2 = nn.LayerNorm(feats_dim)
 
-#         # concat
-#         features = F.silu(torch.cat(feature_list, dim=1))
+        self.node_mlp = nn.Sequential(
+            nn.Linear(feats_dim + m_dim, feats_dim * 2),
+            self.dropout,
+            nn.SiLU(),
+            nn.Linear(feats_dim * 2, feats_dim),
+        )
 
-#         # mlp 1
-#         for mlp in self.fnn[:-1]:
-#             features = F.silu(mlp(features))
+        # Initialization
+        self.apply(self.init_)
 
-#         # outputlayer
-#         features = self.fnn[-1](features).squeeze(1)
+    def init_(self, module):
+        if type(module) in {nn.Linear}:
+            nn.init.xavier_normal_(module.weight)
+            nn.init.zeros_(module.bias)
 
-#         return features
+    def forward(
+        self, x: Tensor, edge_index: Adj,
+    ):
 
+        coors, feats = x[:, : self.pos_dim], x[:, self.pos_dim :]
+        rel_coors = coors[edge_index[0]] - coors[edge_index[1]]
+        rel_dist = (rel_coors ** 2).sum(dim=-1, keepdim=True)
+        # add second dist
 
-# #### Kernel for WBO Network from here:
+        if self.fourier_features > 0:
+            rel_dist = fourier_encode_dist(
+                rel_dist, num_encodings=self.fourier_features
+            )
+            rel_dist = rearrange(rel_dist, "n () d -> n d")
 
+        hidden_out, m_ij = self.propagate(
+            edge_index, x=feats, edge_attr=rel_dist, coors=coors, rel_coors=rel_coors,
+        )
 
-# class EGNN_sparse_edge(MessagePassing):
-#     def __init__(
-#         self,
-#         feats_dim,
-#         pos_dim=3,
-#         edge_attr_dim=0,
-#         m_dim=32,
-#         dropout=0.1,
-#         fourier_features=32,
-#         aggr="mean",
-#         **kwargs,
-#     ):
-#         assert aggr in {
-#             "add",
-#             "sum",
-#             "max",
-#             "mean",
-#         }, "pool method must be a valid option"
+        return torch.cat([coors, hidden_out], dim=-1), m_ij
 
-#         kwargs.setdefault("aggr", aggr)
-#         super(EGNN_sparse_edge, self).__init__(**kwargs)
+    def message(self, x_i, x_j, edge_attr):
+        x_ij = torch.sum(torch.cat([x_i.unsqueeze(2), x_j.unsqueeze(2)], dim=2), dim=2)
+        m_ij = self.edge_mlp(torch.cat([x_ij, edge_attr], dim=1))
+        return m_ij
 
-#         # Model parameters
-#         self.feats_dim = feats_dim
-#         self.pos_dim = pos_dim
-#         self.m_dim = m_dim
-#         self.fourier_features = fourier_features
+    def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
 
-#         self.edge_input_dim = (
-#             (self.fourier_features * 2) + edge_attr_dim + 1 + feats_dim
-#         )
+        # get input tensors
+        size = self.__check_input__(edge_index, size)
+        coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
+        msg_kwargs = self.inspector.distribute("message", coll_dict)
 
-#         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
+        # get messages
+        m_ij = self.message(**msg_kwargs)
+        m_ij = self.edge_norm1(m_ij)
+        m_ij_mirrored = torch.cat([m_ij, m_ij], dim=0)
 
-#         # Edge layers
-#         self.edge_norm1 = nn.LayerNorm(m_dim)
-#         self.edge_norm2 = nn.LayerNorm(m_dim)
+        # get new edge ids
+        edge_mirrored = torch.cat(
+            (edge_index[1].unsqueeze(0), edge_index[0].unsqueeze(0)), dim=0
+        )
+        edge_index = torch.cat([edge_index, edge_mirrored], dim=1)
 
-#         self.edge_mlp = nn.Sequential(
-#             nn.Linear(self.edge_input_dim, self.edge_input_dim * 2),
-#             self.dropout,
-#             nn.SiLU(),
-#             nn.Linear(self.edge_input_dim * 2, m_dim),
-#             nn.SiLU(),
-#         )
+        # update dict with new edge ids
+        size = self.__check_input__(edge_index, size)
+        coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
+        aggr_kwargs = self.inspector.distribute("aggregate", coll_dict)
+        update_kwargs = self.inspector.distribute("update", coll_dict)
 
-#         # Node layers
-#         self.node_norm1 = nn.LayerNorm(feats_dim)
-#         self.node_norm2 = nn.LayerNorm(feats_dim)
+        # aggregate messages
+        m_i = self.aggregate(m_ij_mirrored, **aggr_kwargs)
+        m_i = self.edge_norm1(m_i)
 
-#         self.node_mlp = nn.Sequential(
-#             nn.Linear(feats_dim + m_dim, feats_dim * 2),
-#             self.dropout,
-#             nn.SiLU(),
-#             nn.Linear(feats_dim * 2, feats_dim),
-#         )
+        # get updated node features
+        hidden_feats = self.node_norm1(kwargs["x"])
+        hidden_out = self.node_mlp(torch.cat([hidden_feats, m_i], dim=-1))
+        hidden_out = self.node_norm2(hidden_out)
+        hidden_out = kwargs["x"] + hidden_out
 
-#         # Initialization
-#         self.apply(self.init_)
-
-#     def init_(self, module):
-#         if type(module) in {nn.Linear}:
-#             nn.init.xavier_normal_(module.weight)
-#             nn.init.zeros_(module.bias)
-
-#     def forward(
-#         self, x: Tensor, edge_index: Adj,
-#     ):
-
-#         coors, feats = x[:, : self.pos_dim], x[:, self.pos_dim :]
-#         rel_coors = coors[edge_index[0]] - coors[edge_index[1]]
-#         rel_dist = (rel_coors ** 2).sum(dim=-1, keepdim=True)
-#         # add second dist
-
-#         if self.fourier_features > 0:
-#             rel_dist = fourier_encode_dist(
-#                 rel_dist, num_encodings=self.fourier_features
-#             )
-#             rel_dist = rearrange(rel_dist, "n () d -> n d")
-
-#         hidden_out, m_ij = self.propagate(
-#             edge_index, x=feats, edge_attr=rel_dist, coors=coors, rel_coors=rel_coors,
-#         )
-
-#         return torch.cat([coors, hidden_out], dim=-1), m_ij
-
-#     def message(self, x_i, x_j, edge_attr):
-#         x_ij = torch.sum(torch.cat([x_i.unsqueeze(2), x_j.unsqueeze(2)], dim=2), dim=2)
-#         m_ij = self.edge_mlp(torch.cat([x_ij, edge_attr], dim=1))
-#         return m_ij
-
-#     def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
-
-#         # get input tensors
-#         size = self.__check_input__(edge_index, size)
-#         coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
-#         msg_kwargs = self.inspector.distribute("message", coll_dict)
-
-#         # get messages
-#         m_ij = self.message(**msg_kwargs)
-#         m_ij = self.edge_norm1(m_ij)
-#         m_ij_mirrored = torch.cat([m_ij, m_ij], dim=0)
-
-#         # get new edge ids
-#         edge_mirrored = torch.cat(
-#             (edge_index[1].unsqueeze(0), edge_index[0].unsqueeze(0)), dim=0
-#         )
-#         edge_index = torch.cat([edge_index, edge_mirrored], dim=1)
-
-#         # update dict with new edge ids
-#         size = self.__check_input__(edge_index, size)
-#         coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
-#         aggr_kwargs = self.inspector.distribute("aggregate", coll_dict)
-#         update_kwargs = self.inspector.distribute("update", coll_dict)
-
-#         # aggregate messages
-#         m_i = self.aggregate(m_ij_mirrored, **aggr_kwargs)
-#         m_i = self.edge_norm1(m_i)
-
-#         # get updated node features
-#         hidden_feats = self.node_norm1(kwargs["x"])
-#         hidden_out = self.node_mlp(torch.cat([hidden_feats, m_i], dim=-1))
-#         hidden_out = self.node_norm2(hidden_out)
-#         hidden_out = kwargs["x"] + hidden_out
-
-#         return self.update(hidden_out, **update_kwargs), m_ij
+        return self.update(hidden_out, **update_kwargs), m_ij

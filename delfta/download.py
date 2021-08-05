@@ -23,13 +23,15 @@ MODELS = {
     "multitask_delta": os.path.join(MODEL_PATH, "multitask_delta.pt"),
     "single_energy_delta": os.path.join(MODEL_PATH, "single_energy_delta.pt"),
     "charges_delta": os.path.join(MODEL_PATH, "charges_delta.pt"),
+    "wbo_delta": os.path.join(MODEL_PATH, "wbo_delta.pt"),
     "multitask_direct": os.path.join(MODEL_PATH, "multitask_direct.pt"),
     "single_energy_direct": os.path.join(MODEL_PATH, "single_energy_direct.pt"),
     "charges_direct": os.path.join(MODEL_PATH, "charges_direct.pt"),
+    "wbo_direct": os.path.join(MODEL_PATH, "wbo_direct.pt"),
 }
 
 # TODO Load models trained on 100k. Final sets to be added in the end.
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/hb17Mlmy15NHbKX/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
 

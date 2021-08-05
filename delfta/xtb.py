@@ -85,7 +85,7 @@ def get_wbo(wbo_file, mol):
     Parameters
     ----------
     wbo_file : str
-        path to xTB wbo putput file
+        path to xTB wbo output file
     mol : openbabel.pybel
         molecule
 

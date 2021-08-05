@@ -17,7 +17,7 @@ DELFTA_TO_DFT_KEYS = {
     "E_gap": "DFT:HOMO_LUMO_GAP",
     "dipole": "DFT:DIPOLE",
     "charges": "DFT:MULLIKEN_CHARGES",
-    # "wbo": "DFT:WIBERG_LOWDIN_BOND_ORDER", # TODO: add once implemented
+    "wbo": "DFT:WIBERG_LOWDIN_BOND_ORDER",
 }
 CUTOFFS = {
     "E_form": (0.005, 0.05),
@@ -26,7 +26,7 @@ CUTOFFS = {
     "E_gap": (0.005, 0.005),
     "dipole": (0.3, 0.4),
     "charges": (0.1, 0.1),
-    # "wbo": (0.01, 0.01), # TODO: add once implemented
+    "wbo": (0.01, 0.01),
 }
 
 
@@ -166,10 +166,12 @@ def test_calculator():
     calc_delta = DelftaCalculator(tasks="all", delta=True)
     predictions_delta = calc_delta.predict(mols)
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
+    predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
 
     calc_direct = DelftaCalculator(tasks="all", delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
+    predictions_direct["wbo"] = np.concatenate(predictions_direct["wbo"])
 
     # extract the ground truth from the QMugs SDFs
     dft_keys = [
@@ -179,7 +181,7 @@ def test_calculator():
         "DFT:HOMO_LUMO_GAP",
         "DFT:DIPOLE",
         "DFT:MULLIKEN_CHARGES",
-        # "DFT:WIBERG_LOWDIN_BOND_ORDER", # TODO: add once implemented
+        "DFT:WIBERG_LOWDIN_BOND_ORDER",
     ]
     dft_values = {}
     for dft_key in dft_keys:

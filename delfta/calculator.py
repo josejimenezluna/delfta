@@ -10,7 +10,7 @@ from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
 
 from delfta.download import get_model_weights
-from delfta.net import EGNN
+from delfta.net import EGNN, EGNNWBO
 from delfta.net_utils import (
     MODEL_HPARAMS,
     MULTITASK_ENDPOINTS,
@@ -20,7 +20,7 @@ from delfta.net_utils import (
 from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
 from delfta.xtb import run_xtb_calc
 
-_ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges"]
+_ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
 PLACEHOLDER = float("NaN")
 
 
@@ -83,6 +83,9 @@ class DelftaCalculator:
 
             elif task == "charges":
                 task_name = "charges"
+
+            elif task == "wbo":
+                task_name = "wbo"
 
             elif task == "E_form":
                 task_name = "single_energy"
@@ -398,6 +401,7 @@ class DelftaCalculator:
         """
         y_hats = []
         g_ptrs = []
+        e_ptrs = []
 
         if self.progress and not self.batch_mode:
             progress = tqdm(total=len(loader.dataset))
@@ -406,12 +410,16 @@ class DelftaCalculator:
             for batch in loader:
                 y_hats.append(model(batch).numpy())
                 g_ptrs.append(batch.ptr.numpy())
+                e_ptrs.append(batch.n_edges.numpy())
                 if self.progress and not self.batch_mode:
                     progress.update(n=batch.num_graphs)
 
+        e_ptrs = [np.cumsum(e_p) for e_p in e_ptrs]
+        e_ptrs = [np.insert(e_p, 0, 0) for e_p in e_ptrs]
+
         if self.progress and not self.batch_mode:
             progress.close()
-        return y_hats, g_ptrs
+        return y_hats, g_ptrs, e_ptrs
 
     def _get_xtb_props(self, mols):
         """Runs the GFN2-xTB binary and returns observables
@@ -538,11 +546,11 @@ class DelftaCalculator:
         preds = collections.defaultdict(list)
         for pred_k in pred_keys:
             for batch in preds_batch:
-                if pred_k == "charges":
+                if pred_k == "charges" or pred_k == "wbo":
                     preds[pred_k].extend(batch[pred_k])
                 else:
                     preds[pred_k].extend(batch[pred_k].tolist())
-            if pred_k != "charges":
+            if pred_k != "charges" and pred_k != "wbo":
                 preds[pred_k] = np.array(preds[pred_k], dtype=np.float32)
 
         return (dict(preds), opt_mols_batch) if self.xtbopt else dict(preds)
@@ -607,26 +615,39 @@ class DelftaCalculator:
             if self.verbose:
                 LOGGER.info(f"Now running network for model {model_name}...")
             model_param = MODEL_HPARAMS[model_name]
-            model = EGNN(
-                n_outputs=model_param.n_outputs,
-                global_prop=model_param.global_prop,
-                n_kernels=model_param.n_kernels,
-                mlp_dim=model_param.mlp_dim,
-            ).eval()
+            if "wbo" in model_name:
+                model = EGNNWBO(
+                    n_outputs=model_param.n_outputs,
+                    n_kernels=model_param.n_kernels,
+                    mlp_dim=model_param.mlp_dim,
+                ).eval()
+                loader.dataset.wbo = True            
+            else:
+                model = EGNN(
+                    n_outputs=model_param.n_outputs,
+                    global_prop=model_param.global_prop,
+                    n_kernels=model_param.n_kernels,
+                    mlp_dim=model_param.mlp_dim,
+                ).eval()
+                loader.dataset.wbo = False
             weights = get_model_weights(model_name)
             model.load_state_dict(weights)
-            y_hat, g_ptr = self._get_preds(loader, model)
+            y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
 
-            if "charges" in model_name:
-                atom_y_hats = []
-                for batch_idx, batch_ptr in enumerate(g_ptr):
-                    atom_y_hats.extend(
+            if "charges" in model_name or "wbo" in model_name:
+                nong_y_hats = []
+
+                iter_ptr = g_ptr if "charges" in model_name else e_ptr
+                for batch_idx, batch_ptr in enumerate(iter_ptr):
+                    nong_y_hats.extend(
                         [
                             y_hat[batch_idx][batch_ptr[idx] : batch_ptr[idx + 1]]
                             for idx in range(len(batch_ptr) - 1)
                         ]
                     )
-                preds[model_name] = atom_y_hats
+                preds[model_name] = nong_y_hats
+                # debug_here()
+
             else:
                 y_hat = np.vstack(y_hat)
 
@@ -650,12 +671,13 @@ class DelftaCalculator:
                         :, MULTITASK_ENDPOINTS[task]
                     ]
 
-            elif mname == "charges":
-                preds_filtered["charges"] = preds[model_name]
+            elif mname == "charges" or mname == "wbo":
+                preds_filtered[mname] = preds[model_name]
+
 
         if self.delta:
             for prop, delta_arr in preds_filtered.items():
-                if prop == "charges":
+                if prop == "charges" or prop == "wbo":
                     preds_filtered[prop] = [
                         d_arr + np.array(xtb_arr)
                         for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
@@ -697,7 +719,7 @@ class DelftaCalculator:
         """
         idx_success = np.setdiff1d(np.arange(len_input), fatal)
         for key, val in preds.items():
-            if key == "charges":
+            if key == "charges" or key == "wbo":
                 idx_charge = 0
                 temp = []
                 for idx in range(len_input):
