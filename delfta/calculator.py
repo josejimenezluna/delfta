@@ -42,7 +42,7 @@ class DelftaCalculator:
         ----------
         tasks : str, optional
             A list of tasks to predict. Available tasks include
-            `[E_form, E_homo, E_lumo, E_gap, dipole, charges]`, by default "all".
+            `[E_form, E_homo, E_lumo, E_gap, dipole, charges, wbo]`, by default "all".
         delta : bool, optional
             Whether to use delta-learning models, by default True
         force3d : bool, optional
