@@ -384,7 +384,6 @@ class EGNNWBO(nn.Module):
         return features
 
 
-
 class EGNN_sparse_edge(MessagePassing):
     def __init__(
         self,

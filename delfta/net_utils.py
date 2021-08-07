@@ -19,7 +19,7 @@ MODEL_HPARAMS = {
     "multitask_direct": hparam(4, True, 5, 256),
     "single_energy_direct": hparam(1, True, 5, 256),
     "charges_direct": hparam(1, False, 5, 256),
-    "wbo_direct": hparam(1, False, 5, 256)
+    "wbo_direct": hparam(1, False, 5, 256),
 }
 
 QMUGS_ATOM_DICT = {
@@ -36,7 +36,6 @@ QMUGS_ATOM_DICT = {
 }  # atomic number --> index
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 
 class DelftaDataset(Dataset):
@@ -71,7 +70,9 @@ class DelftaDataset(Dataset):
                 a1, a2 = sorted((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
                 edge_index.append([a1, a2])
 
-            edge_index = torch.from_numpy(np.array(edge_index) - 1).t().contiguous()  ## obabel starts numbering atom idx at 1
+            edge_index = (
+                torch.from_numpy(np.array(edge_index) - 1).t().contiguous()
+            )  ## obabel starts numbering atom idx at 1
         else:
             edge_index = np.array(nx.complete_graph(atomids.size(0)).edges())
             edge_index = to_undirected(torch.from_numpy(edge_index).t().contiguous())

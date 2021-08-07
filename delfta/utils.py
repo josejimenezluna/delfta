@@ -67,6 +67,7 @@ COLUMN_ORDER = {
     "charges": 5,
 }
 
+
 def preds_to_lists(preds):
     preds_list = {}
     for key, val in preds.items():
@@ -75,6 +76,7 @@ def preds_to_lists(preds):
         elif isinstance(val, np.ndarray):
             preds_list[key] = val.tolist()
     return preds_list
+
 
 # logger
 

@@ -621,7 +621,7 @@ class DelftaCalculator:
                     n_kernels=model_param.n_kernels,
                     mlp_dim=model_param.mlp_dim,
                 ).eval()
-                loader.dataset.wbo = True            
+                loader.dataset.wbo = True
             else:
                 model = EGNN(
                     n_outputs=model_param.n_outputs,
@@ -673,7 +673,6 @@ class DelftaCalculator:
 
             elif mname == "charges" or mname == "wbo":
                 preds_filtered[mname] = preds[model_name]
-
 
         if self.delta:
             for prop, delta_arr in preds_filtered.items():
