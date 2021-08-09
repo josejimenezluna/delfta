@@ -646,7 +646,6 @@ class DelftaCalculator:
                         ]
                     )
                 preds[model_name] = nong_y_hats
-                # debug_here()
 
             else:
                 y_hat = np.vstack(y_hat)
