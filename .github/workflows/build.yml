@@ -30,7 +30,7 @@ jobs:
           echo "PYTHONPATH=/home/runner/work/delfta/delfta" >> $GITHUB_ENV
         name: download files
       - run: |
-          python delfta/download.py --training
+          python delfta/download.py --training --tests
           curl -Os https://uploader.codecov.io/latest/linux/codecov 
           chmod +x codecov
         name: test

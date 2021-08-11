@@ -19,20 +19,21 @@ DELFTA_TO_DFT_KEYS = {
     "charges": "DFT:MULLIKEN_CHARGES",
     "wbo": "DFT:WIBERG_LOWDIN_BOND_ORDER",
 }
+
 CUTOFFS = {
-    "E_form": (0.005, 0.05),
-    "E_homo": (0.005, 0.005),
-    "E_lumo": (0.005, 0.005),
-    "E_gap": (0.005, 0.005),
-    "dipole": (0.3, 0.4),
-    "charges": (0.1, 0.1),
-    "wbo": (0.01, 0.01),
+    "E_form": (0.004, 0.02),
+    "E_homo": (0.002, 0.002),
+    "E_lumo": (0.002, 0.002),
+    "E_gap": (0.002, 0.003),
+    "dipole": (0.2, 0.2),
+    "charges": (0.003, 0.003),
+    "wbo": (0.002, 0.003),
 }
 
 
 def test_invalid_mols_list():
-    mol_files = random.sample(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10
+    mol_files = sorted(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
     )
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
@@ -45,9 +46,7 @@ def test_invalid_mols_list():
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(
-        list(mols), batch_size=random.randint(1, len(mols))
-    )
+    predictions_delta = calc_delta.predict(list(mols))
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
@@ -57,14 +56,14 @@ def test_invalid_mols_list():
 
 
 def test_invalid_mols_generator():
-    mol_files = random.sample(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")), 10
+    mol_files = sorted(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
     )
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
     invalid_mols = [next(readfile("sdf", mol_file)) for mol_file in invalid_mol_files]
+    [mol.make2D() for mol in invalid_mols]
     mols = mols + invalid_mols
-    [mol.make2D() for mol in mols]
     expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(
         invalid_mols
     )
@@ -76,9 +75,7 @@ def test_invalid_mols_generator():
     outfile = Outputfile("sdf", test_sdf)
     [outfile.write(mol) for mol in mols]
     calc_delta = DelftaCalculator(tasks=["all"], delta=True)
-    predictions_delta = calc_delta.predict(
-        test_sdf, batch_size=random.randint(1, len(mols))
-    )
+    predictions_delta = calc_delta.predict(test_sdf)
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
@@ -113,9 +110,7 @@ def test_3d_and_h_mols_list():
         calc_delta = DelftaCalculator(
             tasks=["all"], delta=True, force3d=force3d, addh=addh
         )
-        predictions_delta = calc_delta.predict(
-            mols, batch_size=random.randint(1, len(mols))
-        )
+        predictions_delta = calc_delta.predict(mols)
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
 
@@ -149,9 +144,7 @@ def test_3d_and_h_mols_generator():
         calc_delta = DelftaCalculator(
             tasks=["all"], delta=True, force3d=force3d, addh=addh
         )
-        predictions_delta = calc_delta.predict(
-            test_sdf, batch_size=random.randint(1, len(mols))
-        )
+        predictions_delta = calc_delta.predict(test_sdf)
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
 
@@ -233,4 +226,4 @@ def test_xtb_opt():
 
 
 if __name__ == "__main__":
-    test_calculator()
+    test_invalid_mols_generator()

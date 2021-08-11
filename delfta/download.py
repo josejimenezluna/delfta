@@ -31,7 +31,7 @@ MODELS = {
 }
 
 # TODO Load models trained on 100k. Final sets to be added in the end.
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/hb17Mlmy15NHbKX/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
 
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--training", dest="training", action="store_true", default=False
     )
+    parser.add_argument("--tests", dest="tests", action="store_true", default=False)
     args = parser.parse_args()
 
     os.makedirs(DATA_PATH, exist_ok=True)
@@ -119,8 +120,8 @@ if __name__ == "__main__":
     with tarfile.open(models_tar) as handle:
         handle.extractall(ROOT_PATH)
 
+    # Training data
     if args.training:
-        # Training data
         LOGGER.info("Now downloading training data...")
 
         download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
@@ -128,13 +129,14 @@ if __name__ == "__main__":
         with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
             handle.extractall(DATA_PATH)
 
-    # tests
-    LOGGER.info("Downloading tests...")
-    tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
-    download(TESTS_REMOTE, tests_tar)
+    # Test files
+    if args.tests:
+        LOGGER.info("Downloading tests...")
+        tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
+        download(TESTS_REMOTE, tests_tar)
 
-    with tarfile.open(tests_tar) as handle:
-        handle.extractall(DATA_PATH)
+        with tarfile.open(tests_tar) as handle:
+            handle.extractall(DATA_PATH)
 
     # utils
     LOGGER.info("Downloading utils...")

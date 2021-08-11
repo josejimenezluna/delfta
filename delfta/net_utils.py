@@ -13,7 +13,7 @@ MULTITASK_ENDPOINTS = {"E_homo": 0, "E_lumo": 1, "E_gap": 2, "dipole": 3}
 
 MODEL_HPARAMS = {
     "multitask_delta": hparam(4, True, 5, 256),
-    "single_energy_delta": hparam(1, True, 4, 1024),
+    "single_energy_delta": hparam(1, True, 5, 256),
     "charges_delta": hparam(1, False, 5, 256),
     "wbo_delta": hparam(1, False, 5, 256),
     "multitask_direct": hparam(4, True, 5, 256),
