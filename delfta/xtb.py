@@ -1,5 +1,6 @@
 import json
 import os
+from shutil import rmtree
 import subprocess
 import tempfile
 
@@ -135,12 +136,12 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         opt = True
 
     xtb_command = "--opt" if opt else ""
-    temp_dir = tempfile.TemporaryDirectory()
-    logfile = os.path.join(temp_dir.name, "xtb.log")
-    xtb_out = os.path.join(temp_dir.name, "xtbout.json")
-    xtb_wbo = os.path.join(temp_dir.name, "wbo")
+    temp_dir = tempfile.mkdtemp()
+    logfile = os.path.join(temp_dir, "xtb.log")
+    xtb_out = os.path.join(temp_dir, "xtbout.json")
+    xtb_wbo = os.path.join(temp_dir, "wbo")
 
-    sdf_path = os.path.join(temp_dir.name, "mol.sdf")
+    sdf_path = os.path.join(temp_dir, "mol.sdf")
     sdf = pybel.Outputfile("sdf", sdf_path)
     sdf.write(mol)
     sdf.close()
@@ -150,19 +151,17 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
             [XTB_BINARY, sdf_path, xtb_command, "--input", XTB_INPUT_FILE, "--wbo"],
             stdout=f,
             stderr=subprocess.STDOUT,
-            cwd=temp_dir.name,
+            cwd=temp_dir,
         )
     if xtb_run.returncode != 0:
-        error_out = os.path.join(temp_dir.name, "xtb.log")
+        error_out = os.path.join(temp_dir, "xtb.log")
         raise ValueError(f"xTB calculation failed. See {error_out} for details.")
 
     else:
         props = read_xtb_json(xtb_out, mol)
         if return_optmol:
-            opt_mol = next(
-                pybel.readfile("sdf", os.path.join(temp_dir.name, "xtbopt.sdf"))
-            )
+            opt_mol = next(pybel.readfile("sdf", os.path.join(temp_dir, "xtbopt.sdf")))
         props.update({"wbo": get_wbo(xtb_wbo, mol)})
-        temp_dir.cleanup()
+        rmtree(temp_dir)
         return (props, opt_mol) if return_optmol else props
 
