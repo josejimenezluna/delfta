@@ -12,6 +12,7 @@ from tqdm import tqdm
 from delfta.download import get_model_weights
 from delfta.net import EGNN, EGNNWBO
 from delfta.net_utils import (
+    DEVICE,
     MODEL_HPARAMS,
     MULTITASK_ENDPOINTS,
     QMUGS_ATOM_DICT,
@@ -629,7 +630,7 @@ class DelftaCalculator:
                         n_outputs=model_param.n_outputs,
                         n_kernels=model_param.n_kernels,
                         mlp_dim=model_param.mlp_dim,
-                    ).eval()
+                    ).to(DEVICE).eval()
                     loader.dataset.wbo = True
                 else:
                     model = EGNN(
@@ -637,7 +638,7 @@ class DelftaCalculator:
                         global_prop=model_param.global_prop,
                         n_kernels=model_param.n_kernels,
                         mlp_dim=model_param.mlp_dim,
-                    ).eval()
+                    ).to(DEVICE).eval()
                     loader.dataset.wbo = False
                 weights = get_model_weights(model_name)
                 model.load_state_dict(weights)
