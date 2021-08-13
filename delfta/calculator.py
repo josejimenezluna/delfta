@@ -409,9 +409,10 @@ class DelftaCalculator:
 
         with torch.no_grad():
             for batch in loader:
-                y_hats.append(model(batch).numpy())
-                g_ptrs.append(batch.ptr.numpy())
-                e_ptrs.append(batch.n_edges.numpy())
+                batch = batch.to(DEVICE)
+                g_ptrs.append(batch.ptr.cpu().numpy())
+                e_ptrs.append(batch.n_edges.cpu().numpy())
+                y_hats.append(model(batch).cpu().numpy())
                 if self.progress and not self.batch_mode:
                     progress.update(n=batch.num_graphs)
 
