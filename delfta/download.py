@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, LOGGER, MODEL_PATH, ROOT_PATH
+from delfta.utils import DATA_PATH, LOGGER, MODEL_BASEPATH, ROOT_PATH
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
@@ -19,16 +19,17 @@ DATASETS = {
 # TODO Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
 DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
 
-MODELS = {
-    "multitask_delta": os.path.join(MODEL_PATH, "multitask_delta.pt"),
-    "single_energy_delta": os.path.join(MODEL_PATH, "single_energy_delta.pt"),
-    "charges_delta": os.path.join(MODEL_PATH, "charges_delta.pt"),
-    "wbo_delta": os.path.join(MODEL_PATH, "wbo_delta.pt"),
-    "multitask_direct": os.path.join(MODEL_PATH, "multitask_direct.pt"),
-    "single_energy_direct": os.path.join(MODEL_PATH, "single_energy_direct.pt"),
-    "charges_direct": os.path.join(MODEL_PATH, "charges_direct.pt"),
-    "wbo_direct": os.path.join(MODEL_PATH, "wbo_direct.pt"),
-}
+MODELS = [
+    "multitask_delta",
+    "single_energy_delta",
+    "charges_delta",
+    "wbo_delta",
+    "multitask_direct",
+    "single_energy_direct",
+    "charges_direct",
+    "wbo_direct",
+]
+
 
 # TODO Load models trained on 100k. Final sets to be added in the end.
 MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
@@ -84,21 +85,22 @@ def get_dataset(name):
         return h5
 
 
-def get_model_weights(name):
-    """Returns a torch.load handle for a model with a specific `name`.
-    These are checked in the `MODELS` global variable.
+def get_model_weights(name, model_path):
+    """Returns a torch.load handle for a model with a specific `name` from the specified model_path.
 
     Parameters
     ----------
-    name : str, optional
+    name : str
         Name of the model weights to be returned
+    model_path: str
+        Path to model folder
 
     Returns
     -------
     torch.weights
         Trained weights for the requested model
     """
-    weights = torch.load(MODELS[name], map_location=DEVICE)
+    weights = torch.load(os.path.join(model_path, name + ".pt"), map_location=DEVICE)
     return weights
 
 

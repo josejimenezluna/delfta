@@ -18,7 +18,7 @@ from delfta.net_utils import (
     QMUGS_ATOM_DICT,
     DelftaDataset,
 )
-from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
+from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_BASEPATH
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
@@ -36,6 +36,7 @@ class DelftaCalculator:
         verbose=True,
         progress=True,
         return_optmols=False,
+        model="models2000000",
     ) -> None:
         """Main calculator class for predicting DFT observables.
 
@@ -72,8 +73,9 @@ class DelftaCalculator:
         self.progress = progress
         self.return_optmols = return_optmols
         self.batch_mode = False
-
-        with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
+        self.model = model
+        self.model_path = os.path.join(MODEL_BASEPATH, self.model)
+        with open(os.path.join(self.model_path, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
 
         self.models = []
@@ -615,8 +617,7 @@ class DelftaCalculator:
             if len(fatal_xtb) == len(input_):
                 xtb_all_fail = True
                 preds_filtered = {k: [] for k in self.tasks}
-                
-        
+
         if not xtb_all_fail:
             mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
             data = DelftaDataset(mols)
@@ -627,21 +628,29 @@ class DelftaCalculator:
                     LOGGER.info(f"Now running network for model {model_name}...")
                 model_param = MODEL_HPARAMS[model_name]
                 if "wbo" in model_name:
-                    model = EGNNWBO(
-                        n_outputs=model_param.n_outputs,
-                        n_kernels=model_param.n_kernels,
-                        mlp_dim=model_param.mlp_dim,
-                    ).to(DEVICE).eval()
+                    model = (
+                        EGNNWBO(
+                            n_outputs=model_param.n_outputs,
+                            n_kernels=model_param.n_kernels,
+                            mlp_dim=model_param.mlp_dim,
+                        )
+                        .to(DEVICE)
+                        .eval()
+                    )
                     loader.dataset.wbo = True
                 else:
-                    model = EGNN(
-                        n_outputs=model_param.n_outputs,
-                        global_prop=model_param.global_prop,
-                        n_kernels=model_param.n_kernels,
-                        mlp_dim=model_param.mlp_dim,
-                    ).to(DEVICE).eval()
+                    model = (
+                        EGNN(
+                            n_outputs=model_param.n_outputs,
+                            global_prop=model_param.global_prop,
+                            n_kernels=model_param.n_kernels,
+                            mlp_dim=model_param.mlp_dim,
+                        )
+                        .to(DEVICE)
+                        .eval()
+                    )
                     loader.dataset.wbo = False
-                weights = get_model_weights(model_name)
+                weights = get_model_weights(model_name, self.model_path)
                 model.load_state_dict(weights)
                 y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
 
@@ -668,7 +677,6 @@ class DelftaCalculator:
                             y_hat = self._inv_scale(y_hat, self.norm["delta"])
 
                     preds[model_name] = y_hat
-
 
             for model_name in preds.keys():
                 mname = model_name.rsplit("_", maxsplit=1)[0]
