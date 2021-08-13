@@ -12,6 +12,7 @@ from tqdm import tqdm
 from delfta.download import get_model_weights
 from delfta.net import EGNN, EGNNWBO
 from delfta.net_utils import (
+    DEVICE,
     MODEL_HPARAMS,
     MULTITASK_ENDPOINTS,
     QMUGS_ATOM_DICT,
@@ -576,6 +577,7 @@ class DelftaCalculator:
         """
 
         fatal_xtb, fatal = [], []
+        xtb_all_fail = False
 
         if isinstance(input_, openbabel.pybel.Molecule):
             return self.predict([input_])
@@ -605,85 +607,92 @@ class DelftaCalculator:
         elif not self.xtbopt and self.delta:
             xtb_props, fatal_xtb = self._get_xtb_props(mols)
 
-        mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
-        data = DelftaDataset(mols)
-        loader = DataLoader(data, batch_size=batch_size, shuffle=False)
-
         preds = {}
-
-        for _, model_name in enumerate(self.models):
-            if self.verbose:
-                LOGGER.info(f"Now running network for model {model_name}...")
-            model_param = MODEL_HPARAMS[model_name]
-            if "wbo" in model_name:
-                model = EGNNWBO(
-                    n_outputs=model_param.n_outputs,
-                    n_kernels=model_param.n_kernels,
-                    mlp_dim=model_param.mlp_dim,
-                ).eval()
-                loader.dataset.wbo = True
-            else:
-                model = EGNN(
-                    n_outputs=model_param.n_outputs,
-                    global_prop=model_param.global_prop,
-                    n_kernels=model_param.n_kernels,
-                    mlp_dim=model_param.mlp_dim,
-                ).eval()
-                loader.dataset.wbo = False
-            weights = get_model_weights(model_name)
-            model.load_state_dict(weights)
-            y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
-
-            if "charges" in model_name or "wbo" in model_name:
-                nong_y_hats = []
-
-                iter_ptr = g_ptr if "charges" in model_name else e_ptr
-                for batch_idx, batch_ptr in enumerate(iter_ptr):
-                    nong_y_hats.extend(
-                        [
-                            y_hat[batch_idx][batch_ptr[idx] : batch_ptr[idx + 1]]
-                            for idx in range(len(batch_ptr) - 1)
-                        ]
-                    )
-                preds[model_name] = nong_y_hats
-
-            else:
-                y_hat = np.vstack(y_hat)
-
-                if "multitask" in model_name:
-                    if "direct" in model_name:
-                        y_hat = self._inv_scale(y_hat, self.norm["direct"])
-                    else:
-                        y_hat = self._inv_scale(y_hat, self.norm["delta"])
-
-                preds[model_name] = y_hat
-
         preds_filtered = {}
 
-        for model_name in preds.keys():
-            mname = model_name.rsplit("_", maxsplit=1)[0]
-            if mname == "single_energy":
-                preds_filtered["E_form"] = preds[model_name].squeeze()
-            elif mname == "multitask":
-                for task in self.multitasks:
-                    preds_filtered[task] = preds[model_name][
-                        :, MULTITASK_ENDPOINTS[task]
-                    ]
-
-            elif mname == "charges" or mname == "wbo":
-                preds_filtered[mname] = preds[model_name]
-
         if self.delta:
-            for prop, delta_arr in preds_filtered.items():
-                if prop == "charges" or prop == "wbo":
-                    preds_filtered[prop] = [
-                        d_arr + np.array(xtb_arr)
-                        for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
-                    ]
+            if len(fatal_xtb) == len(input_):
+                xtb_all_fail = True
+                preds_filtered = {k: [] for k in self.tasks}
+                
+        
+        if not xtb_all_fail:
+            mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
+            data = DelftaDataset(mols)
+            loader = DataLoader(data, batch_size=batch_size, shuffle=False)
+
+            for _, model_name in enumerate(self.models):
+                if self.verbose:
+                    LOGGER.info(f"Now running network for model {model_name}...")
+                model_param = MODEL_HPARAMS[model_name]
+                if "wbo" in model_name:
+                    model = EGNNWBO(
+                        n_outputs=model_param.n_outputs,
+                        n_kernels=model_param.n_kernels,
+                        mlp_dim=model_param.mlp_dim,
+                    ).to(DEVICE).eval()
+                    loader.dataset.wbo = True
                 else:
-                    preds_filtered[prop] = delta_arr + np.array(
-                        xtb_props[prop], dtype=np.float32
-                    )
+                    model = EGNN(
+                        n_outputs=model_param.n_outputs,
+                        global_prop=model_param.global_prop,
+                        n_kernels=model_param.n_kernels,
+                        mlp_dim=model_param.mlp_dim,
+                    ).to(DEVICE).eval()
+                    loader.dataset.wbo = False
+                weights = get_model_weights(model_name)
+                model.load_state_dict(weights)
+                y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
+
+                if "charges" in model_name or "wbo" in model_name:
+                    nong_y_hats = []
+
+                    iter_ptr = g_ptr if "charges" in model_name else e_ptr
+                    for batch_idx, batch_ptr in enumerate(iter_ptr):
+                        nong_y_hats.extend(
+                            [
+                                y_hat[batch_idx][batch_ptr[idx] : batch_ptr[idx + 1]]
+                                for idx in range(len(batch_ptr) - 1)
+                            ]
+                        )
+                    preds[model_name] = nong_y_hats
+
+                else:
+                    y_hat = np.vstack(y_hat)
+
+                    if "multitask" in model_name:
+                        if "direct" in model_name:
+                            y_hat = self._inv_scale(y_hat, self.norm["direct"])
+                        else:
+                            y_hat = self._inv_scale(y_hat, self.norm["delta"])
+
+                    preds[model_name] = y_hat
+
+
+            for model_name in preds.keys():
+                mname = model_name.rsplit("_", maxsplit=1)[0]
+                if mname == "single_energy":
+                    preds_filtered["E_form"] = preds[model_name].squeeze()
+                elif mname == "multitask":
+                    for task in self.multitasks:
+                        preds_filtered[task] = preds[model_name][
+                            :, MULTITASK_ENDPOINTS[task]
+                        ]
+
+                elif mname == "charges" or mname == "wbo":
+                    preds_filtered[mname] = preds[model_name]
+
+            if self.delta:
+                for prop, delta_arr in preds_filtered.items():
+                    if prop == "charges" or prop == "wbo":
+                        preds_filtered[prop] = [
+                            d_arr + np.array(xtb_arr)
+                            for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
+                        ]
+                    else:
+                        preds_filtered[prop] = delta_arr + np.array(
+                            xtb_props[prop], dtype=np.float32
+                        )
 
         if fatal_xtb:  # insert placeholder values where xtb errors occurred
             preds_filtered = self._insert_placeholders(
@@ -718,14 +727,14 @@ class DelftaCalculator:
         idx_success = np.setdiff1d(np.arange(len_input), fatal)
         for key, val in preds.items():
             if key == "charges" or key == "wbo":
-                idx_charge = 0
+                idx_nonglobal = 0
                 temp = []
                 for idx in range(len_input):
                     if idx in fatal:
                         temp.append(np.array(PLACEHOLDER))
                     else:
-                        temp.append(val[idx_charge])
-                        idx_charge += 1
+                        temp.append(val[idx_nonglobal])
+                        idx_nonglobal += 1
             else:
                 temp = np.zeros(len_input, dtype=np.float32)
                 temp[idx_success] = val
