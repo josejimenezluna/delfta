@@ -89,6 +89,29 @@ You can also generate Openbabel molecules by *e.g.*, reading from a file to incl
 Further documentation on how to use the package is available under
 `ReadTheDocs <http://toinclude.html>`__.
 
+Output
+------
+The following table shows the seven output endpoints for the delfta applications. Note in particular that energies are returned in Hartree, rather than eV.  
+
++-----------------------------------------------+-----------------+-------------------+
+| **Property**                                  | **Key**         | **Unit**          |
++-----------------------------------------------+-----------------+-------------------+
+| Formation energy                              | :code:`E_form`  | Hartree           |
++-----------------------------------------------+-----------------+-------------------+
+| Energy of highest occupied molecular orbital  | :code:`E_homo`  | Hartree           |
++-----------------------------------------------+-----------------+-------------------+
+| Energy of lowest unoccupied molecular orbital | :code:`E_lumo`  | Hartree           |
++-----------------------------------------------+-----------------+-------------------+
+| HOMO-LUMO gap                                 | :code:`E_gap`   | Hartree           |
++-----------------------------------------------+-----------------+-------------------+
+| Molecular dipole                              | :code:`dipole`  | Debye             |
++-----------------------------------------------+-----------------+-------------------+
+| Mulliken partial charges                      | :code:`charges` | elementary charge |
++-----------------------------------------------+-----------------+-------------------+
+| Wiberg bond orders                            | :code:`wbo`     | --                |
++-----------------------------------------------+-----------------+-------------------+
+
+
 Tutorials
 ---------
 
