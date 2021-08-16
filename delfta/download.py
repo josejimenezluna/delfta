@@ -19,16 +19,16 @@ DATASETS = {
 # TODO Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
 DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
 
-MODELS = [
-    "multitask_delta",
-    "single_energy_delta",
-    "charges_delta",
-    "wbo_delta",
-    "multitask_direct",
-    "single_energy_direct",
-    "charges_direct",
-    "wbo_direct",
-]
+MODELS = {
+    "multitask_delta": "multitask_delta.pt",
+    "single_energy_delta": "single_energy_delta.pt",
+    "charges_delta": "charges_delta.pt",
+    "wbo_delta": "wbo_delta.pt",
+    "multitask_direct": "multitask_direct.pt",
+    "single_energy_direct": "single_energy_direct.pt",
+    "charges_direct": "charges_direct.pt",
+    "wbo_direct": "wbo_direct.pt",
+}
 
 
 # TODO Load models trained on 100k. Final sets to be added in the end.

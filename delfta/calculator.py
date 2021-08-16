@@ -19,6 +19,7 @@ from delfta.net_utils import (
     DelftaDataset,
 )
 from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
+from delfta.download import MODELS
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
@@ -28,7 +29,7 @@ PLACEHOLDER = float("NaN")
 class DelftaCalculator:
     def __init__(
         self,
-        tasks="all",
+        tasks=None,
         delta=True,
         force3d=True,
         addh=True,
@@ -36,7 +37,7 @@ class DelftaCalculator:
         verbose=True,
         progress=True,
         return_optmols=False,
-        models=[],
+        models=None,
     ) -> None:
         """Main calculator class for predicting DFT observables.
 
@@ -63,12 +64,15 @@ class DelftaCalculator:
         models: list, optional
             List of paths to saved models if different models than the default ones should be used.
             If 'models' is set, 'tasks' cannot be specified manually and will be infered from the 
-            passed models. See delfta.utils.MODELS for naming convention. 
+            passed models. See delfta.utils.MODELS for naming convention. Need to agree with choice of 
+            'delta'. 
             Normalization values are not modified. 
         """
-        if tasks != "all" and models != []:  # tasks and models both manually set
+        if (
+            tasks is not None and models is not None
+        ):  # tasks and models both manually set
             raise ValueError("Can only specify 'tasks' or 'models', but not both.")
-        if tasks == "all" or tasks == ["all"]:
+        if tasks == None or tasks == "all" or tasks == ["all"]:
             tasks = _ALLTASKS
 
         self.tasks = tasks
@@ -83,14 +87,8 @@ class DelftaCalculator:
         self.batch_mode = False
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
-        if models != []:
-            delta_name = "delta" if self.delta else "direct"
-            if not all([model.endswith(f"_{delta_name}.pt") for model in models]):
-                raise ValueError(
-                    "Specified models are incompatible with specified 'delta'."
-                )
-            else:
-                self.models = models
+        if models is not None:
+            self.models = models
         else:  # use default models
             self.models = []
 
@@ -115,7 +113,7 @@ class DelftaCalculator:
                 else:
                     task_name += "_direct"
 
-                self.models.append(os.path.join(MODEL_PATH, task_name + ".pt"))
+                self.models.append(os.path.join(MODEL_PATH, MODELS[task_name]))
 
             self.models = list(set(self.models))
 

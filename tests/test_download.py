@@ -21,6 +21,6 @@ def test_islinkup():
 
 
 def test_get_model_weights():
-    for name in MODELS:
-        _ = get_model_weights(os.path.join(MODEL_PATH, f"{name}.pt"))
+    for name in MODELS.keys():
+        _ = get_model_weights(os.path.join(MODEL_PATH, MODELS[name]))
 
