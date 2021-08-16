@@ -18,6 +18,13 @@ from delfta.utils import (
 )
 
 XTB_INPUT_FILE = os.path.join(UTILS_PATH, "xtb.inp")
+XTB_ENV = {
+    "OMP_STACKSIZE": "1G",
+    "OMP_NUM_THREADS": "1",
+    "OMP_MAX_ACTIVE_LEVELS": "1",
+    "MKL_NUM_THREADS": "1"
+}
+
 
 
 def read_xtb_json(json_file, mol):
@@ -152,6 +159,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
             stdout=f,
             stderr=subprocess.STDOUT,
             cwd=temp_dir,
+            env=XTB_ENV
         )
     if xtb_run.returncode != 0:
         error_out = os.path.join(temp_dir, "xtb.log")
