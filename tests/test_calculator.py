@@ -5,7 +5,7 @@ import tempfile
 
 import numpy as np
 from delfta.calculator import DelftaCalculator
-from delfta.utils import TESTS_PATH
+from delfta.utils import MODEL_PATH, TESTS_PATH
 from openbabel.pybel import Outputfile, readfile
 from sklearn.metrics import mean_absolute_error
 import scipy
@@ -201,6 +201,66 @@ def test_calculator():
         assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
 
 
+def test_calculator_with_manually_specified_models():
+    mol_files = sorted(
+        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
+    )
+    print(f"Located {len(mol_files)} sdf files for testing!")
+    assert len(mol_files) == 100
+    mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+
+    model_names = ["charges", "multitask", "single_energy", "wbo"]
+    models_delta = [
+        os.path.join(MODEL_PATH, f"{name}_delta.pt") for name in model_names
+    ]
+    calc_delta = DelftaCalculator(models=models_delta, delta=True)
+    predictions_delta = calc_delta.predict(mols)
+    predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
+    predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
+
+    models_direct = [
+        os.path.join(MODEL_PATH, f"{name}_direct.pt") for name in model_names
+    ]
+    calc_direct = DelftaCalculator(models=models_direct, delta=False)
+    predictions_direct = calc_direct.predict(mols)
+    predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
+    predictions_direct["wbo"] = np.concatenate(predictions_direct["wbo"])
+
+    # extract the ground truth from the QMugs SDFs
+    dft_keys = [
+        "DFT:FORMATION_ENERGY",
+        "DFT:HOMO_ENERGY",
+        "DFT:LUMO_ENERGY",
+        "DFT:HOMO_LUMO_GAP",
+        "DFT:DIPOLE",
+        "DFT:MULLIKEN_CHARGES",
+        "DFT:WIBERG_LOWDIN_BOND_ORDER",
+    ]
+    dft_values = {}
+    for dft_key in dft_keys:
+        if dft_key == "DFT:DIPOLE":
+            dft_values[dft_key] = [
+                float(mol.data[dft_key].split("|")[-1]) for mol in mols
+            ]
+        elif (
+            dft_key == "DFT:MULLIKEN_CHARGES"
+            or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER"
+        ):
+            dft_values[dft_key] = [
+                float(elem) for mol in mols for elem in mol.data[dft_key].split("|")
+            ]
+        else:
+            dft_values[dft_key] = [float(mol.data[dft_key]) for mol in mols]
+
+    # compare ground truth with prediction
+    for key in DELFTA_TO_DFT_KEYS:
+        pred_delta = predictions_delta[key]
+        pred_direct = predictions_direct[key]
+        dft_vals = np.array(dft_values[DELFTA_TO_DFT_KEYS[key]])
+        assert mean_absolute_error(pred_delta, dft_vals) < CUTOFFS[key][0]
+        assert mean_absolute_error(pred_direct, dft_vals) < CUTOFFS[key][1]
+
+
 def test_xtb_opt():
     benzene_distorted = os.path.join(
         TESTS_PATH, "mols_xtb_opt", "benzene_distorted.xyz"
@@ -225,5 +285,3 @@ def test_xtb_opt():
         )  # molecule is planar
 
 
-if __name__ == "__main__":
-    test_invalid_mols_generator()

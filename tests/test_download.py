@@ -9,7 +9,7 @@ from delfta.download import (
     UTILS_REMOTE,
     get_model_weights,
 )
-from delfta.utils import DEFAULT_MODEL_PATH
+from delfta.utils import MODEL_PATH
 
 _remotes = [TESTS_REMOTE, UTILS_REMOTE, MODELS_REMOTE, DATASET_REMOTE]
 
@@ -22,5 +22,5 @@ def test_islinkup():
 
 def test_get_model_weights():
     for name in MODELS:
-        _ = get_model_weights(name, os.path.join(DEFAULT_MODEL_PATH))
+        _ = get_model_weights(os.path.join(MODEL_PATH, f"{name}.pt"))
 

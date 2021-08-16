@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, LOGGER, MODEL_BASEPATH, ROOT_PATH
+from delfta.utils import DATA_PATH, LOGGER, MODEL_PATH, ROOT_PATH
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
@@ -85,7 +85,7 @@ def get_dataset(name):
         return h5
 
 
-def get_model_weights(name, model_path):
+def get_model_weights(model_path):
     """Returns a torch.load handle for a model with a specific `name` from the specified model_path.
 
     Parameters
@@ -100,7 +100,7 @@ def get_model_weights(name, model_path):
     torch.weights
         Trained weights for the requested model
     """
-    weights = torch.load(os.path.join(model_path, name + ".pt"), map_location=DEVICE)
+    weights = torch.load(model_path, map_location=DEVICE)
     return weights
 
 

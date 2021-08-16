@@ -7,8 +7,7 @@ import numpy as np
 ROOT_PATH = os.path.dirname(os.path.dirname(__file__))
 DATA_PATH = os.path.join(ROOT_PATH, "data")
 TESTS_PATH = os.path.join(DATA_PATH, "test_data")
-MODEL_BASEPATH = os.path.join(ROOT_PATH, "models")
-DEFAULT_MODEL_PATH = os.path.join(MODEL_BASEPATH, "models2000000")
+MODEL_PATH = os.path.join(ROOT_PATH, "models")
 UTILS_PATH = os.path.join(ROOT_PATH, "utils")
 XTB_BINARY = os.path.join(os.environ.get("CONDA_PREFIX"), "bin", "xtb")
 
