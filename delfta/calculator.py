@@ -43,9 +43,10 @@ class DelftaCalculator:
 
         Parameters
         ----------
-        tasks : str, optional
+        tasks : list[str], optional
             A list of tasks to predict. Available tasks include
-            `[E_form, E_homo, E_lumo, E_gap, dipole, charges, wbo]`, by default "all".
+            `[E_form, E_homo, E_lumo, E_gap, dipole, charges, wbo]`, by default None, which
+            performs all possible tasks.
         delta : bool, optional
             Whether to use delta-learning models, by default True
         force3d : bool, optional
@@ -72,9 +73,14 @@ class DelftaCalculator:
             tasks is not None and models is not None
         ):  # tasks and models both manually set
             raise ValueError("Can only specify 'tasks' or 'models', but not both.")
-        if tasks == None or tasks == "all" or tasks == ["all"]:
+        if tasks is None:
             tasks = _ALLTASKS
-
+        else:
+            if isinstance(tasks, str):
+                tasks = [tasks]
+            if not all([task in _ALLTASKS for task in tasks]):
+                error_str = "You specified an invalid task. Option are 'E_form', 'E_homo', 'E_lumo', 'E_gap', 'dipole', 'charges', 'wbo'"
+                raise ValueError(error_str)
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]

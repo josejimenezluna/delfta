@@ -45,7 +45,7 @@ def test_invalid_mols_list():
     tmp = list(zip(mols, expected_nans))
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
-    calc_delta = DelftaCalculator(tasks=["all"], delta=True)
+    calc_delta = DelftaCalculator(delta=True)
     predictions_delta = calc_delta.predict(list(mols))
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
@@ -74,7 +74,7 @@ def test_invalid_mols_generator():
     test_sdf = os.path.join(temp_dir.name, "test_files.sdf")
     outfile = Outputfile("sdf", test_sdf)
     [outfile.write(mol) for mol in mols]
-    calc_delta = DelftaCalculator(tasks=["all"], delta=True)
+    calc_delta = DelftaCalculator(delta=True)
     predictions_delta = calc_delta.predict(test_sdf)
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
@@ -107,9 +107,7 @@ def test_3d_and_h_mols_list():
     addhs = [True, False, True, False]
     for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan):
         mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
-        calc_delta = DelftaCalculator(
-            tasks=["all"], delta=True, force3d=force3d, addh=addh
-        )
+        calc_delta = DelftaCalculator(delta=True, force3d=force3d, addh=addh)
         predictions_delta = calc_delta.predict(mols)
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
@@ -141,9 +139,7 @@ def test_3d_and_h_mols_generator():
     force3ds = [True, True, False, False]
     addhs = [True, False, True, False]
     for force3d, addh, idx_nan in zip(force3ds, addhs, idxs_nan):
-        calc_delta = DelftaCalculator(
-            tasks=["all"], delta=True, force3d=force3d, addh=addh
-        )
+        calc_delta = DelftaCalculator(delta=True, force3d=force3d, addh=addh)
         predictions_delta = calc_delta.predict(test_sdf)
         assert np.all(np.isnan(predictions_delta["E_form"][idx_nan]))
 
@@ -156,12 +152,12 @@ def test_calculator():
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
 
-    calc_delta = DelftaCalculator(tasks="all", delta=True)
+    calc_delta = DelftaCalculator(delta=True)
     predictions_delta = calc_delta.predict(mols)
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
     predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
 
-    calc_direct = DelftaCalculator(tasks="all", delta=False)
+    calc_direct = DelftaCalculator(delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
     predictions_direct["wbo"] = np.concatenate(predictions_direct["wbo"])
@@ -283,5 +279,4 @@ def test_xtb_opt():
         assert np.all(
             np.isclose(0, Z - new_coords[:, 2], atol=1e-2)
         )  # molecule is planar
-
 
