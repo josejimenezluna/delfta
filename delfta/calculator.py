@@ -9,17 +9,17 @@ import torch
 from torch_geometric.data.dataloader import DataLoader
 from tqdm import tqdm
 
-from delfta.download import get_model_weights
-from delfta.net import EGNN, EGNNWBO
-from delfta.net_utils import (
-    DEVICE,
-    MODEL_HPARAMS,
-    MULTITASK_ENDPOINTS,
-    QMUGS_ATOM_DICT,
-    DelftaDataset,
+from delfta.download import MODELS, get_model_weights
+from delfta.molchecks import (
+    _3dcheck,
+    _atomtypecheck,
+    _chargecheck,
+    _hydrogencheck,
+    _molcheck,
 )
+from delfta.net import EGNN, EGNNWBO
+from delfta.net_utils import DEVICE, MODEL_HPARAMS, MULTITASK_ENDPOINTS, DelftaDataset
 from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
-from delfta.download import MODELS
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
@@ -60,14 +60,14 @@ class DelftaCalculator:
         progress : bool, optional
             Enables/disables progress bars in prediction, by default True
         return_optmols: bool, optional
-            Enables/disables returning the optimized molecules (use in combination with 
+            Enables/disables returning the optimized molecules (use in combination with
             xtbopt), by default False
         models: list, optional
             List of paths to saved models if different models than the default ones should be used.
-            If 'models' is set, 'tasks' cannot be specified manually and will be infered from the 
-            passed models. See delfta.utils.MODELS for naming convention. Need to agree with choice of 
-            'delta'. 
-            Normalization values are not modified. 
+            If 'models' is set, 'tasks' cannot be specified manually and will be infered from the
+            passed models. See delfta.utils.MODELS for naming convention. Need to agree with choice of
+            'delta'.
+            Normalization values are not modified.
         """
         if (
             tasks is not None and models is not None
@@ -123,111 +123,6 @@ class DelftaCalculator:
 
             self.models = list(set(self.models))
 
-    def _molcheck(self, mol):
-        """Checks if `mol` is a valid molecule.
-
-        Parameters
-        ----------
-        mol : any
-            Any type, but should be openbabel.pybel.Molecule
-
-        Returns
-        -------
-        bool
-            `True` if `mol` is a valid molecule, `False` otherwise.
-        """
-        return (
-            isinstance(mol, openbabel.pybel.Molecule)
-            and (mol.OBMol is not None)
-            and (len(mol.atoms) > 0)
-        )
-
-    def _3dcheck(self, mol):
-        """Checks whether `mol` has 3d coordinates assigned. If
-        `self.force3d=True` these will be computed for
-        those lacking them using the MMFF94 force-field as
-        available in pybel.
-
-        Parameters
-        ----------
-        mol : pybel.Molecule
-            An OEChem molecule object
-
-        Returns
-        -------
-        bool
-            `True` if `mol` has a 3d conformation, `False` otherwise.
-        """
-        if mol.dim != 3:
-            if self.force3d:
-                mol.make3D()
-            return False
-        return True
-
-    def _atomtypecheck(self, mol):
-        """Checks whether the atom types in `mol` are supported
-        by the QMugs database
-
-        Parameters
-        ----------
-        mol : pybel.Molecule
-            An OEChem molecule object
-
-        Returns
-        -------
-        bool
-            `True` if all atoms have valid atom types, `False` otherwise.
-        """
-        for atom in mol.atoms:
-            if atom.atomicnum not in QMUGS_ATOM_DICT:
-                return False
-        return True
-
-    def _chargecheck(self, mol):
-        """Checks whether the overall charge on `mol` is neutral.
-
-        Parameters
-        ----------
-        mol : pybel.Molecule
-            An OEChem molecule object
-
-        Returns
-        -------
-        bool
-            `True` is overall `mol` charge is 0, `False` otherwise.
-        """
-        if mol.charge != 0:
-            return True
-        else:
-            return False
-
-    def _hydrogencheck(self, mol):
-        """Checks whether `mol` has assigned hydrogens. If `self.addh=True`
-        these will be added if lacking.
-
-        Parameters
-        ----------
-        mol : pybel.Molecule
-            An OEChem molecule object
-
-        Returns
-        -------
-        bool
-            Whether `mol` has assigned hydrogens.
-        """
-        nh_mol = sum([True for atom in mol.atoms if atom.atomicnum == 1])
-        mol_cpy = mol.clone
-        mol_cpy.removeh()
-        mol_cpy.addh()
-        nh_cpy = sum([True for atom in mol_cpy.atoms if atom.atomicnum == 1])
-
-        if nh_mol == nh_cpy:
-            return True
-        else:
-            if self.addh:
-                mol.addh()
-            return False
-
     def _preprocess(self, mols, offset_idx=0):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
         including 3d-conformation existence, validity of atom types, neutral charge
@@ -257,27 +152,27 @@ class DelftaCalculator:
         fatal = set()
 
         for idx, mol in enumerate(mols):
-            valid_mol = self._molcheck(mol)
+            valid_mol = _molcheck(mol)
             if not valid_mol:
                 idx_non_valid_mols.add(idx)
                 fatal.add(idx)
                 continue  # no need to check further
 
-            is_atype_valid = self._atomtypecheck(mol)
+            is_atype_valid = _atomtypecheck(mol)
             if not is_atype_valid:
                 idx_non_valid_atypes.add(idx)
                 fatal.add(idx)
 
-            is_charged = self._chargecheck(mol)
+            is_charged = _chargecheck(mol)
             if is_charged:
                 idx_charged.add(idx)
                 fatal.add(idx)
 
-            has_h = self._hydrogencheck(mol)
+            has_h = _hydrogencheck(mol, addh=self.addh)
             if not has_h:
                 idx_noh.add(idx)
 
-            has_3d = self._3dcheck(mol)
+            has_3d = _3dcheck(mol, force3d=self.force3d)
             if not has_3d:
                 idx_no3d.add(idx)
 
@@ -736,7 +631,7 @@ class DelftaCalculator:
 
     def _insert_placeholders(self, preds, len_input, fatal):
         """Restore the excepted shape of the output by inserting PLACEHOLDER
-        at the places where errors occurred. 
+        at the places where errors occurred.
 
         Parameters
         ----------
