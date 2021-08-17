@@ -19,6 +19,7 @@ from delfta.net_utils import (
     DelftaDataset,
 )
 from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
+from delfta.download import MODELS
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
@@ -28,7 +29,7 @@ PLACEHOLDER = float("NaN")
 class DelftaCalculator:
     def __init__(
         self,
-        tasks="all",
+        tasks=None,
         delta=True,
         force3d=True,
         addh=True,
@@ -36,14 +37,16 @@ class DelftaCalculator:
         verbose=True,
         progress=True,
         return_optmols=False,
+        models=None,
     ) -> None:
         """Main calculator class for predicting DFT observables.
 
         Parameters
         ----------
-        tasks : str, optional
+        tasks : list[str], optional
             A list of tasks to predict. Available tasks include
-            `[E_form, E_homo, E_lumo, E_gap, dipole, charges, wbo]`, by default "all".
+            `[E_form, E_homo, E_lumo, E_gap, dipole, charges, wbo]`, by default None, which
+            performs all possible tasks.
         delta : bool, optional
             Whether to use delta-learning models, by default True
         force3d : bool, optional
@@ -59,9 +62,25 @@ class DelftaCalculator:
         return_optmols: bool, optional
             Enables/disables returning the optimized molecules (use in combination with 
             xtbopt), by default False
+        models: list, optional
+            List of paths to saved models if different models than the default ones should be used.
+            If 'models' is set, 'tasks' cannot be specified manually and will be infered from the 
+            passed models. See delfta.utils.MODELS for naming convention. Need to agree with choice of 
+            'delta'. 
+            Normalization values are not modified. 
         """
-        if tasks == "all" or tasks == ["all"]:
+        if (
+            tasks is not None and models is not None
+        ):  # tasks and models both manually set
+            raise ValueError("Can only specify 'tasks' or 'models', but not both.")
+        if tasks is None:
             tasks = _ALLTASKS
+        else:
+            if isinstance(tasks, str):
+                tasks = [tasks]
+            if not all([task in _ALLTASKS for task in tasks]):
+                error_str = "You specified an invalid task. Option are 'E_form', 'E_homo', 'E_lumo', 'E_gap', 'dipole', 'charges', 'wbo'"
+                raise ValueError(error_str)
         self.tasks = tasks
         self.delta = delta
         self.multitasks = [task for task in self.tasks if task in MULTITASK_ENDPOINTS]
@@ -72,36 +91,37 @@ class DelftaCalculator:
         self.progress = progress
         self.return_optmols = return_optmols
         self.batch_mode = False
-
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
+        if models is not None:
+            self.models = models
+        else:  # use default models
+            self.models = []
 
-        self.models = []
+            for task in tasks:
+                if task in MULTITASK_ENDPOINTS:
+                    task_name = "multitask"
 
-        for task in tasks:
-            if task in MULTITASK_ENDPOINTS:
-                task_name = "multitask"
+                elif task == "charges":
+                    task_name = "charges"
 
-            elif task == "charges":
-                task_name = "charges"
+                elif task == "wbo":
+                    task_name = "wbo"
 
-            elif task == "wbo":
-                task_name = "wbo"
+                elif task == "E_form":
+                    task_name = "single_energy"
 
-            elif task == "E_form":
-                task_name = "single_energy"
+                else:
+                    raise ValueError(f"Task name `{task}` not recognised")
 
-            else:
-                raise ValueError(f"Task name `{task}` not recognised")
+                if self.delta:
+                    task_name += "_delta"
+                else:
+                    task_name += "_direct"
 
-            if self.delta:
-                task_name += "_delta"
-            else:
-                task_name += "_direct"
+                self.models.append(os.path.join(MODEL_PATH, MODELS[task_name]))
 
-            self.models.append(task_name)
-
-        self.models = list(set(self.models))
+            self.models = list(set(self.models))
 
     def _molcheck(self, mol):
         """Checks if `mol` is a valid molecule.
@@ -615,33 +635,41 @@ class DelftaCalculator:
             if len(fatal_xtb) == len(input_):
                 xtb_all_fail = True
                 preds_filtered = {k: [] for k in self.tasks}
-                
-        
+
         if not xtb_all_fail:
             mols = [mol for i, mol in enumerate(mols) if i not in fatal_xtb]
             data = DelftaDataset(mols)
             loader = DataLoader(data, batch_size=batch_size, shuffle=False)
 
-            for _, model_name in enumerate(self.models):
+            for _, model_path in enumerate(self.models):
+                model_name = os.path.splitext(os.path.basename(model_path))[0]
                 if self.verbose:
                     LOGGER.info(f"Now running network for model {model_name}...")
                 model_param = MODEL_HPARAMS[model_name]
                 if "wbo" in model_name:
-                    model = EGNNWBO(
-                        n_outputs=model_param.n_outputs,
-                        n_kernels=model_param.n_kernels,
-                        mlp_dim=model_param.mlp_dim,
-                    ).to(DEVICE).eval()
+                    model = (
+                        EGNNWBO(
+                            n_outputs=model_param.n_outputs,
+                            n_kernels=model_param.n_kernels,
+                            mlp_dim=model_param.mlp_dim,
+                        )
+                        .to(DEVICE)
+                        .eval()
+                    )
                     loader.dataset.wbo = True
                 else:
-                    model = EGNN(
-                        n_outputs=model_param.n_outputs,
-                        global_prop=model_param.global_prop,
-                        n_kernels=model_param.n_kernels,
-                        mlp_dim=model_param.mlp_dim,
-                    ).to(DEVICE).eval()
+                    model = (
+                        EGNN(
+                            n_outputs=model_param.n_outputs,
+                            global_prop=model_param.global_prop,
+                            n_kernels=model_param.n_kernels,
+                            mlp_dim=model_param.mlp_dim,
+                        )
+                        .to(DEVICE)
+                        .eval()
+                    )
                     loader.dataset.wbo = False
-                weights = get_model_weights(model_name)
+                weights = get_model_weights(model_path)
                 model.load_state_dict(weights)
                 y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
 
@@ -668,7 +696,6 @@ class DelftaCalculator:
                             y_hat = self._inv_scale(y_hat, self.norm["delta"])
 
                     preds[model_name] = y_hat
-
 
             for model_name in preds.keys():
                 mname = model_name.rsplit("_", maxsplit=1)[0]
