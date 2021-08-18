@@ -19,8 +19,8 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 
 project = "delfta"
-copyright = "2021, Jose Jimenez, Clemens Isert, Ken Atz"
-author = "Jose Jimenez, Clemens Isert, Ken Atz"
+copyright = "2021, Jose Jimenez, Clemens Isert, Kennneth Atz, Markus Böcker, Gisbert Schneider"
+author = "Jose Jimenez, Clemens Isert, Kenneth Atz, Markus Böcker, Gisbert Schneider"
 
 
 # -- General configuration ---------------------------------------------------
@@ -52,7 +52,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "nature"
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

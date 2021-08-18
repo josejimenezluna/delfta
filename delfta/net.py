@@ -312,6 +312,32 @@ class EGNNWBO(nn.Module):
         fourier_features=32,
         aggr="mean",
     ):
+        """WBO equivariant Graph Neural Network class. This is to be deprecated
+        on future releases.
+
+        Parameters
+        ----------
+        embedding_dim : int, optional
+            Embedding dimension, by default 128
+        n_kernels : int, optional
+            Number of message-passing rounds, by default 5
+        n_mlp : int, optional
+            Number of node-level and global-level MLPs, by default 3
+        mlp_dim : int, optional
+            Hidden size of the node-level and global-level MLPs, by default 256
+        n_outputs : int, optional
+            Number of endpoints to predict, by default 1
+        m_dim : int, optional
+            Node-level hidden size, by default 32
+        initialize_weights : bool, optional
+            Whether to use Xavier init. for learnable weights, by default True
+        fourier_features : int, optional
+            Number of Fourier features to use, by default 32
+        aggr : str, optional
+            Aggregation strategy for global tasks, by default "mean"
+        global_prop : bool, optional
+            Whether to predict a molecule-level property or an atomic one, by default True
+        """
         super(EGNNWBO, self).__init__()
 
         self.pos_dim = 3
@@ -396,6 +422,25 @@ class EGNN_sparse_edge(MessagePassing):
         aggr="mean",
         **kwargs,
     ):
+        """Base torch geometric WBO EGNN message-passing layer
+
+        Parameters
+        ----------
+        feats_dim : int
+            Dimension of the node-level features
+        pos_dim : int, optional
+            Dimensions of the positional features (e.g. cartesian coordinates), by default 3
+        edge_attr_dim : int, optional
+            Dimension of the edge-level features, by default 0
+        m_dim : int, optional
+            Hidden node/edge layer size, by default 32
+        dropout : float, optional
+            Whether to use dropout, by default 0.1
+        fourier_features : int, optional
+            Number of Fourier features, by default 32
+        aggr : str, optional
+            Node update function, by default "mean"
+        """
         assert aggr in {
             "add",
             "sum",

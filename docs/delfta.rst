@@ -7,9 +7,9 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   delfta.__version__
    delfta.calculator
    delfta.download
+   delfta.molchecks
    delfta.net
    delfta.net_utils
    delfta.utils

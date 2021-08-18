@@ -86,8 +86,6 @@ Here's a simple example of how to run a calculation for a single molecule create
 
 You can also generate Openbabel molecules by *e.g.*, reading from a file to include atom coordinates. See the `Openbabel documentation <https://openbabel.org/docs/dev/UseTheLibrary/Python_Pybel.html>`__ for more information. 
 
-Further documentation on how to use the package is available under
-`ReadTheDocs <http://toinclude.html>`__.
 
 Output
 ------

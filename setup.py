@@ -1,21 +1,17 @@
 from setuptools import setup, find_packages
 
-version = {}
-with open('delfta/__version__.py') as fp:
-    exec(fp.read(), version)
-
     
 setup(name='delfta',
-    version=version['__version__'],
+    version="0.2",
     description='delfta',
     classifiers=[
     'Development Status :: 2 - Pre-Alpha',
     'Topic :: Scientific/Engineering :: Mathematics'
     ],
     keywords = [],
-    url='',
-    author='',
-    author_email='',
-    license='',
+    url='https://github.com/josejimenezluna/delfta',
+    author='Jose Jimenez, Clemens Isert, Kenneth Atz, Markus Böcker, Gisbert Schneider',
+    author_email='hawk31@gmai.com',
+    license='AGPLv3',
     packages=find_packages(),
     zip_safe=False)
