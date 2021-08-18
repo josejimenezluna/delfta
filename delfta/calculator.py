@@ -91,6 +91,8 @@ class DelftaCalculator:
         self.progress = progress
         self.return_optmols = return_optmols
         self.batch_mode = False
+        self.offset_idx = 0
+
         with open(os.path.join(MODEL_PATH, "norm.pt"), "rb") as handle:
             self.norm = pickle.load(handle)
         if models is not None:
@@ -123,7 +125,7 @@ class DelftaCalculator:
 
             self.models = list(set(self.models))
 
-    def _preprocess(self, mols, offset_idx=0):
+    def _preprocess(self, mols):
         """Performs a series of preprocessing checks on a list of molecules `mols`,
         including 3d-conformation existence, validity of atom types, neutral charge
         and hydrogen addition.
@@ -137,9 +139,6 @@ class DelftaCalculator:
         -------
         ([pybel.Molecule], [int])
             A list of processed OEChem molecule objects; and indices of molecules that cannot be processed.
-        offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing.
-
         """
         if len(mols) == 0:
             raise ValueError("No molecules provided.")
@@ -183,7 +182,7 @@ class DelftaCalculator:
         good_mols = [mol for idx, mol in enumerate(mols) if idx not in fatal]
         self._log_status(
             len(mols),
-            offset_idx,
+            self.offset_idx,
             idx_non_valid_mols,
             idx_non_valid_atypes,
             idx_charged,
@@ -425,7 +424,7 @@ class DelftaCalculator:
         if self.xtbopt:
             opt_mols_batch = []
         done_flag = False
-        total_done_so_far = 0
+
         progress = tqdm()
         while not done_flag:
             mols = []
@@ -447,16 +446,16 @@ class DelftaCalculator:
 
             if self.xtbopt:
                 preds_this_batch, opt_mols_this_batch = self.predict(
-                    mols, batch_size, offset_idx=total_done_so_far
+                    mols, batch_size,
                 )
                 opt_mols_batch.extend(opt_mols_this_batch)
             else:
                 preds_this_batch = self.predict(
-                    mols, batch_size, offset_idx=total_done_so_far
+                    mols, batch_size,
                 )
 
             preds_batch.append(preds_this_batch)
-            total_done_so_far += done_so_far
+            self.offset_idx += done_so_far
         progress.close()
 
         pred_keys = preds_batch[0].keys()
@@ -472,7 +471,7 @@ class DelftaCalculator:
 
         return (dict(preds), opt_mols_batch) if self.xtbopt else dict(preds)
 
-    def predict(self, input_, batch_size=32, offset_idx=0):
+    def predict(self, input_, batch_size=32):
         """Main prediction method for DFT observables.
 
         Parameters
@@ -481,9 +480,6 @@ class DelftaCalculator:
             Either a single or a list of OEChem Molecule instances or a pybel filereader generator instance.
         batch_size : int, optional
             Batch size used for prediction, by default 32
-        offset_idx: int, optional
-            By how much indices in the reported warnings should be offset. Helper for batch-wise processing. Don't set manually.
-
         Returns
         -------
         dict
@@ -499,7 +495,7 @@ class DelftaCalculator:
             return self.predict([input_])
 
         elif isinstance(input_, list):
-            mols, fatal = self._preprocess(input_, offset_idx=offset_idx)
+            mols, fatal = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
             if self.return_optmols:
