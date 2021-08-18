@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 import collections
 import os
 import pickle

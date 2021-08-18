@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 import json
 import os
 from shutil import rmtree

@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 import argparse
 import os
 import tarfile

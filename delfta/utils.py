@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 import os
 import logging
 import numpy as np

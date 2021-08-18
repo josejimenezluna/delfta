@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 from collections import namedtuple
 
 import networkx as nx

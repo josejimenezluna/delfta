@@ -1,3 +1,7 @@
+"""
+© 2021, ETH Zurich
+"""
+
 from openbabel.pybel import Molecule
 from delfta.net_utils import QMUGS_ATOM_DICT
 
