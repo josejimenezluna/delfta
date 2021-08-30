@@ -1,9 +1,4 @@
-import os
 from setuptools import setup, find_packages
-
-if os.environ.get("READTHEDOCS"):
-    os.environ['CONDA_PREFIX'] = "/home/docs/checkouts/readthedocs.org/user_builds/delfta/conda/latest/"
-
     
 setup(name='delfta',
     version="0.5",
