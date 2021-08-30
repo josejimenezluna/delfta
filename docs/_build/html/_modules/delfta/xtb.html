@@ -1,0 +1,402 @@
+<!doctype html>
+<html class="no-js">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../genindex.html" /><link rel="search" title="Search" href="../../search.html" />
+
+    <meta name="generator" content="sphinx-4.1.2, furo 2021.08.17.beta43"/>
+        <title>delfta.xtb - delfta documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?digest=910ac4ccc9d7c023151c34010d7b500fb9777a51" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?digest=16fb25fabf47304eee183a5e9af80b1ba98259b1" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  body[data-theme="dark"] {
+    --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+  }
+  @media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+  }
+</style>
+    <link media="(prefers-color-scheme: dark)" rel="stylesheet" href="../../_static/pygments_dark.css"></head>
+  <body>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" />
+      <line x1="4" y1="6" x2="20" y2="6" />
+      <line x1="10" y1="12" x2="20" y2="12" />
+      <line x1="6" y1="18" x2="20" y2="18" />
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">delfta  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  
+  <span class="sidebar-brand-text">delfta  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder=Search name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../delfta.html">delfta package</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle child pages in navigation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.calculator.html">delfta.calculator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.download.html">delfta.download module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.molchecks.html">delfta.molchecks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.net.html">delfta.net module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.net_utils.html">delfta.net_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.utils.html">delfta.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../delfta.xtb.html">delfta.xtb module</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <article role="main">
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <h1>Source code for delfta.xtb</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""</span>
+<span class="sd">© 2021, ETH Zurich</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">rmtree</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">openbabel</span> <span class="kn">import</span> <span class="n">pybel</span>
+
+<span class="kn">from</span> <span class="nn">delfta.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ATOM_ENERGIES_XTB</span><span class="p">,</span>
+    <span class="n">ATOMNUM_TO_ELEM</span><span class="p">,</span>
+    <span class="n">AU_TO_DEBYE</span><span class="p">,</span>
+    <span class="n">EV_TO_HARTREE</span><span class="p">,</span>
+    <span class="n">LOGGER</span><span class="p">,</span>
+    <span class="n">UTILS_PATH</span><span class="p">,</span>
+    <span class="n">XTB_BINARY</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">XTB_INPUT_FILE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">UTILS_PATH</span><span class="p">,</span> <span class="s2">"xtb.inp"</span><span class="p">)</span>
+<span class="n">XTB_ENV</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"OMP_STACKSIZE"</span><span class="p">:</span> <span class="s2">"1G"</span><span class="p">,</span>
+    <span class="s2">"OMP_NUM_THREADS"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"OMP_MAX_ACTIVE_LEVELS"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"MKL_NUM_THREADS"</span><span class="p">:</span> <span class="s2">"1"</span>
+<span class="p">}</span>
+
+
+
+<div class="viewcode-block" id="read_xtb_json"><a class="viewcode-back" href="../../delfta.xtb.html#delfta.xtb.read_xtb_json">[docs]</a><span class="k">def</span> <span class="nf">read_xtb_json</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
+    <span class="sd">"""Reads JSON output file from xTB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    json_file : str</span>
+<span class="sd">        path to output file</span>
+<span class="sd">    mol : pybel molecule object</span>
+<span class="sd">        molecule object, needed to compute atomic energy</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        dictionary of xTB properties</span>
+<span class="sd">    """</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">json_file</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">E_homo</span><span class="p">,</span> <span class="n">E_lumo</span> <span class="o">=</span> <span class="n">get_homo_and_lumo_energies</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">atoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">ATOMNUM_TO_ELEM</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">atomicnum</span><span class="p">]</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span>
+    <span class="n">atomic_energy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">ATOM_ENERGIES_XTB</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">])</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"E_form"</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">"total energy"</span><span class="p">]</span> <span class="o">-</span> <span class="n">atomic_energy</span><span class="p">,</span>  <span class="c1"># already in Hartree</span>
+        <span class="s2">"E_homo"</span><span class="p">:</span> <span class="n">E_homo</span> <span class="o">*</span> <span class="n">EV_TO_HARTREE</span><span class="p">,</span>
+        <span class="s2">"E_lumo"</span><span class="p">:</span> <span class="n">E_lumo</span> <span class="o">*</span> <span class="n">EV_TO_HARTREE</span><span class="p">,</span>
+        <span class="s2">"E_gap"</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">"HOMO-LUMO gap/eV"</span><span class="p">]</span> <span class="o">*</span> <span class="n">EV_TO_HARTREE</span><span class="p">,</span>
+        <span class="s2">"dipole"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"dipole"</span><span class="p">])</span> <span class="o">*</span> <span class="n">AU_TO_DEBYE</span><span class="p">,</span>
+        <span class="s2">"charges"</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s2">"partial charges"</span><span class="p">],</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">props</span></div>
+
+
+<div class="viewcode-block" id="get_homo_and_lumo_energies"><a class="viewcode-back" href="../../delfta.xtb.html#delfta.xtb.get_homo_and_lumo_energies">[docs]</a><span class="k">def</span> <span class="nf">get_homo_and_lumo_energies</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">"""Extracts HOMO and LUMO energies.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict</span>
+<span class="sd">        dictionary from xTB JSON output</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple(float)</span>
+<span class="sd">        HOMO/LUMO energies in eV</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        in case of unpaired electrons (not supported)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">"number of unpaired electrons"</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Unpaired electrons are not supported."</span><span class="p">)</span>
+    <span class="n">num_occupied</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"fractional occupation"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">1e-6</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>  <span class="c1"># number of occupied orbitals; accounting for occassional very small values</span>
+    <span class="n">E_homo</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"orbital energies/eV"</span><span class="p">][</span><span class="n">num_occupied</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># zero-indexing</span>
+    <span class="n">E_lumo</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"orbital energies/eV"</span><span class="p">][</span><span class="n">num_occupied</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">E_homo</span><span class="p">,</span> <span class="n">E_lumo</span></div>
+
+
+<div class="viewcode-block" id="get_wbo"><a class="viewcode-back" href="../../delfta.xtb.html#delfta.xtb.get_wbo">[docs]</a><span class="k">def</span> <span class="nf">get_wbo</span><span class="p">(</span><span class="n">wbo_file</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
+    <span class="sd">"""Reads WBO output file from xTB and generates a dictionary with the results. </span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    wbo_file : str</span>
+<span class="sd">        path to xTB wbo output file</span>
+<span class="sd">    mol : openbabel.pybel</span>
+<span class="sd">        molecule</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        list with Wiberg bond orders (only covalent bonds)</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">wbo_file</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">elem</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()]</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="mi">12</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">24</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">24</span><span class="p">:])]</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+    <span class="n">wbo_dict</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">min</span><span class="p">((</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">max</span><span class="p">((</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">:</span> <span class="n">wbo</span> <span class="k">for</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">wbo</span> <span class="ow">in</span> <span class="n">tmp</span><span class="p">}</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="p">[</span><span class="n">mol</span><span class="o">.</span><span class="n">OBMol</span><span class="o">.</span><span class="n">GetBondById</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">OBMol</span><span class="o">.</span><span class="n">NumBonds</span><span class="p">())]:</span>
+        <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">bond</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">()))</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wbo_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">a1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">a2</span><span class="si">}</span><span class="s2">"</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="run_xtb_calc"><a class="viewcode-back" href="../../delfta.xtb.html#delfta.xtb.run_xtb_calc">[docs]</a><span class="k">def</span> <span class="nf">run_xtb_calc</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_optmol</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">"""Runs xTB single-point calculation with optional geometry optimization.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mol : pybel molecule object</span>
+<span class="sd">        assumes hydrogens are present</span>
+<span class="sd">    opt : bool, optional</span>
+<span class="sd">        Whether to optimize the geometry, by default False</span>
+<span class="sd">    return_optmol : bool, optional</span>
+<span class="sd">        Whether to return the optimized molecule, in case optimization was requested, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Molecular properties as computed by GFN2-xTB (formation energy, HOMO/LUMO/gap energies, dipole, atomic charges)</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If xTB calculation yield a non-zero return code.</span>
+<span class="sd">    """</span>
+
+    <span class="k">if</span> <span class="n">return_optmol</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">opt</span><span class="p">:</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">"Can't have `return_optmol` set to True with `opt` set to False. Setting the latter to True now."</span>
+        <span class="p">)</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">xtb_command</span> <span class="o">=</span> <span class="s2">"--opt"</span> <span class="k">if</span> <span class="n">opt</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">temp_dir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">()</span>
+    <span class="n">logfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"xtb.log"</span><span class="p">)</span>
+    <span class="n">xtb_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"xtbout.json"</span><span class="p">)</span>
+    <span class="n">xtb_wbo</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"wbo"</span><span class="p">)</span>
+
+    <span class="n">sdf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"mol.sdf"</span><span class="p">)</span>
+    <span class="n">sdf</span> <span class="o">=</span> <span class="n">pybel</span><span class="o">.</span><span class="n">Outputfile</span><span class="p">(</span><span class="s2">"sdf"</span><span class="p">,</span> <span class="n">sdf_path</span><span class="p">)</span>
+    <span class="n">sdf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">sdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">xtb_run</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">XTB_BINARY</span><span class="p">,</span> <span class="n">sdf_path</span><span class="p">,</span> <span class="n">xtb_command</span><span class="p">,</span> <span class="s2">"--input"</span><span class="p">,</span> <span class="n">XTB_INPUT_FILE</span><span class="p">,</span> <span class="s2">"--wbo"</span><span class="p">],</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">temp_dir</span><span class="p">,</span>
+            <span class="n">env</span><span class="o">=</span><span class="n">XTB_ENV</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">xtb_run</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">error_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"xtb.log"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"xTB calculation failed. See </span><span class="si">{</span><span class="n">error_out</span><span class="si">}</span><span class="s2"> for details."</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">read_xtb_json</span><span class="p">(</span><span class="n">xtb_out</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">return_optmol</span><span class="p">:</span>
+            <span class="n">opt_mol</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">pybel</span><span class="o">.</span><span class="n">readfile</span><span class="p">(</span><span class="s2">"sdf"</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">"xtbopt.sdf"</span><span class="p">)))</span>
+        <span class="n">props</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"wbo"</span><span class="p">:</span> <span class="n">get_wbo</span><span class="p">(</span><span class="n">xtb_wbo</span><span class="p">,</span> <span class="n">mol</span><span class="p">)})</span>
+        <span class="n">rmtree</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">props</span><span class="p">,</span> <span class="n">opt_mol</span><span class="p">)</span> <span class="k">if</span> <span class="n">return_optmol</span> <span class="k">else</span> <span class="n">props</span></div>
+
+</pre></div>
+      </article>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+
+        <div class="related-information">
+              Copyright &#169; 2021, Jose Jimenez, Clemens Isert, Kennneth Atz, Markus Böcker, Gisbert Schneider
+            |
+            Built with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+              and
+              <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+              <a href="https://github.com/pradyunsg/furo">Furo theme</a>.
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/scripts/main.js"></script>
+    </body>
+</html>

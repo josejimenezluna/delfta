@@ -2,16 +2,13 @@
 ![](docs/delfta_overview.png)
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
+![conda](https://anaconda.org/delfta/delfta/badges/installer/conda.svg)
 [![codecov](https://codecov.io/gh/josejimenezluna/delfta/branch/master/graph/badge.svg?token=kMkZiUi0DZ)](https://codecov.io/gh/josejimenezluna/delfta)
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)
 
 ## Installation
 
-### Pre-requisites
-
-Currently supported operating systems include both Linux and macOS (x86_64 only). Basic build tools (_e.g_. make) are currently required for installation. Under Ubuntu, for instance, these are available under the `build-essential` package. The required package might be named differently on different distributions.
-
-While the Linux installation fully supports GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS.
+While the Linux/Windowns installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. Additionally, only Python 3.7 and 3.8 are currently supported.
 
 ### Installation via conda
 
@@ -42,7 +39,7 @@ DelFTa requires some additional files (_e.g._ trained models) before it can be u
 
 ```python
 import runpy
-runpy.run_module("delfta.download", run_name="__main__")
+_ = runpy.run_module("delfta.download", run_name="__main__")
 ```
 
 Alternatively, call the `_download_required` function in the `download` module:
@@ -53,6 +50,8 @@ _download_required()
 ```
 
 ## Quick start
+
+We interface with PyBel (OpenBabel). Most molecular file formats are supported (_e.g._ .sdf, .xyz).
 
 ```python
 from openbabel.pybel import readstring

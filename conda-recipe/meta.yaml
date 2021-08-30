@@ -27,6 +27,7 @@ requirements:
     - openbabel>=3.1.1
     - h5py>=3.2.1
     - xtb=6.4.1
+    - einops=0.3.0
 
 
 about:
