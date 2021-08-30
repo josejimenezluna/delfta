@@ -1,0 +1,5 @@
+name: delfta-docs
+channels:
+- conda-forge
+dependencies:
+- openbabel=3.1.1
