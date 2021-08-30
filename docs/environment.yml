@@ -1,5 +1,12 @@
 name: delfta-docs
 channels:
-- conda-forge
+  - conda-forge
 dependencies:
-- openbabel=3.1.1
+  - python=3.7
+  - openbabel=3.1.1
+  - pip:
+    - numpy=1.19.2
+    - torch=1.8.0
+    - h5py=3.2.1
+    - networkx=2.5
+    - furo
