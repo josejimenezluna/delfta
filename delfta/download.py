@@ -20,7 +20,6 @@ DATASETS = {
     "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
 }  # TODO update dataset structure
 
-# TODO Load 100k datasets (train: 100k, eval: 20k, test: 20k). Final sets to be added in the end.
 DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
 
 MODELS = {

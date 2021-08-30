@@ -5,6 +5,6 @@ sphinx:
 
 python:
   version: "3.7"
-
-conda:
-  environment: environment.yml
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
