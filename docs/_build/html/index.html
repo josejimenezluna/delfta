@@ -212,34 +212,31 @@
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <section id="pre-requisites">
 <h3>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h3>
-<p>Currently supported operating systems include both Linux and macOS (x86_64
-only). Basic build tools (<em>e.g</em>. <code class="docutils literal notranslate"><span class="pre">make</span></code>) are currently required for
-installation. Under Ubuntu, for instance, these are available under the
-<code class="docutils literal notranslate"><span class="pre">build-essential</span></code> package. The required package might be named
-differently on different distributions.</p>
-<p>While the Linux installation fully supports GPU-acceleration via
-cudatoolkit, only CPU inference is currently available under macOS.</p>
+<p>While the Linux/Windowns installations fully support GPU-acceleration
+via cudatoolkit, only CPU inference is currently available under Mac OS.
+Additionally, only Python 3.7 and 3.8 are currently supported.</p>
 </section>
 <section id="installation-via-conda">
 <h3>Installation via conda<a class="headerlink" href="#installation-via-conda" title="Permalink to this headline">¶</a></h3>
 <p>We recommend and support installation via the
 <a class="reference external" href="https://docs.conda.io/en/latest/miniconda.html">conda</a> package
-manager. First clone the repository to obtain the latest version or
-download one of the provided stable releases:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/josejimenezluna/delfta
+manager, and that a fresh environment is created beforehand.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
 </pre></div>
 </div>
-<p>Afterwards, move into the root repo directory and build the provided
-Makefile via:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> delfta
-make
+</section>
+<section id="first-run">
+<h3>First run<a class="headerlink" href="#first-run" title="Permalink to this headline">¶</a></h3>
+<p>DelFTa requires some additional files (e.g. trained models) before it
+can be used. Open a python CLI and execute the download script included
+in the package:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">runpy</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">runpy</span><span class="o">.</span><span class="n">run_module</span><span class="p">(</span><span class="s2">"delfta.download"</span><span class="p">,</span> <span class="n">run_name</span><span class="o">=</span><span class="s2">"__main__"</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>which will create a new conda environment named <code class="docutils literal notranslate"><span class="pre">delfta</span></code> and install
-all the required dependencies as well as this package according to the
-requirements of your host operating system. After the installation has
-completed, you can now activate the environment and use the package via</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate delfta
+<p>Alternatively, call the <code class="docutils literal notranslate"><span class="pre">_download_required</span></code> function in the <code class="docutils literal notranslate"><span class="pre">download</span></code> module:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">delfta.download</span> <span class="kn">import</span> <span class="n">_download_required</span>
+<span class="n">_download_required</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -390,6 +387,7 @@ following BibTex entry:</p>
 <li><a class="reference internal" href="#installation">Installation</a><ul>
 <li><a class="reference internal" href="#pre-requisites">Pre-requisites</a></li>
 <li><a class="reference internal" href="#installation-via-conda">Installation via conda</a></li>
+<li><a class="reference internal" href="#first-run">First run</a></li>
 <li><a class="reference internal" href="#installation-via-docker">Installation via Docker</a></li>
 </ul>
 </li>

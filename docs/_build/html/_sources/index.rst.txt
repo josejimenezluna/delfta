@@ -12,43 +12,42 @@ Installation
 Pre-requisites
 ~~~~~~~~~~~~~~
 
-Currently supported operating systems include both Linux and macOS (x86\_64
-only). Basic build tools (*e.g*. ``make``) are currently required for
-installation. Under Ubuntu, for instance, these are available under the
-``build-essential`` package. The required package might be named
-differently on different distributions.
-
-While the Linux installation fully supports GPU-acceleration via
-cudatoolkit, only CPU inference is currently available under macOS.
+While the Linux/Windowns installations fully support GPU-acceleration
+via cudatoolkit, only CPU inference is currently available under Mac OS.
+Additionally, only Python 3.7 and 3.8 are currently supported.
 
 Installation via conda
 ~~~~~~~~~~~~~~~~~~~~~~
 
 We recommend and support installation via the
 `conda <https://docs.conda.io/en/latest/miniconda.html>`__ package
-manager. First clone the repository to obtain the latest version or
-download one of the provided stable releases:
+manager, and that a fresh environment is created beforehand. 
 
 .. code:: bash
 
-    git clone https://github.com/josejimenezluna/delfta
+   conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
 
-Afterwards, move into the root repo directory and build the provided
-Makefile via:
 
-.. code:: bash
+First run
+~~~~~~~~~
 
-    cd delfta
-    make
+DelFTa requires some additional files (e.g. trained models) before it
+can be used. Open a python CLI and execute the download script included
+in the package:
 
-which will create a new conda environment named ``delfta`` and install
-all the required dependencies as well as this package according to the
-requirements of your host operating system. After the installation has
-completed, you can now activate the environment and use the package via
+.. code:: python
 
-.. code:: bash
+   import runpy
+   _ = runpy.run_module("delfta.download", run_name="__main__")
 
-    conda activate delfta
+Alternatively, call the ``_download_required`` function in the ``download`` module:
+
+
+.. code-block:: python
+
+   from delfta.download import _download_required
+   _download_required()
+
 
 Installation via Docker
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,6 +67,7 @@ Attach to the provided container with
 
 Quick start
 -----------
+
 Here's a simple example of how to run a calculation for a single molecule created from a SMILES string:
 
 .. code:: python
