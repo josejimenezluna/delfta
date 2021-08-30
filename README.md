@@ -3,6 +3,7 @@
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
 ![conda](https://anaconda.org/delfta/delfta/badges/installer/conda.svg)
+[![Documentation Status](https://readthedocs.org/projects/delfta/badge/?version=latest)](https://delfta.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/josejimenezluna/delfta/branch/master/graph/badge.svg?token=kMkZiUi0DZ)](https://codecov.io/gh/josejimenezluna/delfta)
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)
 
@@ -51,7 +52,7 @@ _download_required()
 
 ## Quick start
 
-We interface with PyBel (OpenBabel). Most molecular file formats are supported (_e.g._ .sdf, .xyz).
+We interface with Pybel (OpenBabel). Most molecular file formats are supported (_e.g._ .sdf, .xyz).
 
 ```python
 from openbabel.pybel import readstring
@@ -65,7 +66,7 @@ print(preds)
 ```
 
 
-Further documentation on how to use the package is available under [ReadTheDocs](http://toinclude.html).
+Further documentation on how to use the package is available under [ReadTheDocs](https://delfta.readthedocs.io/en/latest/).
 
 ## Tutorials
 

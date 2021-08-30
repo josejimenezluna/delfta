@@ -1,0 +1,13 @@
+name: delfta
+channels:
+  - pytorch
+  - defaults
+  - conda-forge
+dependencies:
+  - numpy=1.19.2
+  - python=3.7.4
+  - pytorch=1.8.0
+  - openbabel=3.1.1
+  - h5py=3.2.1
+  - pip:
+    - networkx==2.5
