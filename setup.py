@@ -14,4 +14,7 @@ setup(name='delfta',
     author_email='hawk31@gmail.com',
     license='AGPLv3',
     packages=find_packages(),
+    install_requires=[
+        'furo'
+    ],
     zip_safe=False)

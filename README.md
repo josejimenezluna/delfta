@@ -8,7 +8,7 @@
 
 ## Installation
 
-While the Linux/Windowns installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. Additionally, only Python 3.7 and 3.8 are currently supported.
+While the Linux/Windows installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. Additionally, only Python 3.7 and 3.8 are currently supported.
 
 ### Installation via conda
 
