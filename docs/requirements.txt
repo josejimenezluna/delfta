@@ -1,5 +1,0 @@
-torch == 1.8.0
-h5py == 3.2.1
-networkx == 2.5
-numpy == 1.19.2
-furo
