@@ -1,0 +1,17 @@
+name: delfta-docs
+channels:
+  - conda-forge
+  - rusty1s
+dependencies:
+  - python=3.7
+  - openbabel=3.1.1
+  - xtb=6.4.1
+  - pytorch-geometric=1.7.2
+  - pip:
+    - numpy==1.19.2
+    - torch==1.8.0
+    - h5py==3.2.1
+    - networkx==2.5
+    - furo
+    - einops==0.3.0
+    - tqdm

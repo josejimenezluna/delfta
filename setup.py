@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-
     
 setup(name='delfta',
     version="0.5",
@@ -10,11 +9,8 @@ setup(name='delfta',
     ],
     keywords = [],
     url='https://github.com/josejimenezluna/delfta',
-    author='Jose Jimenez, Clemens Isert, Kenneth Atz, Gisbert Schneider',
+    author='Jose Jimenez, Clemens Isert, Kenneth Atz, Markus Bocker, Gisbert Schneider',
     author_email='hawk31@gmail.com',
     license='AGPLv3',
     packages=find_packages(),
-    install_requires=[
-        'furo'
-    ],
     zip_safe=False)

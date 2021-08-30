@@ -116,19 +116,28 @@ Tutorials
 In-depth tutorials can be found in the ``tutorials`` subfolder. These include: 
 
 - ``delta_vs_direct.ipynb``: This showcases the basics of how to run the calculator, and compares results using direct- and :math:`\Delta`-learning models. 
-- ``calculator_options.ipynb``: This dives into the different options you can initialize the calculator class with. 
+- ``calculator_options.ipynb``: This dives into the different options you can initialize the calculator class with.
+
+
+Additional models
+-----------------
+
+
+Models trained on different training set sizes are available `here <https://polybox.ethz.ch/index.php/s/3mbn6iLwdleHSAh>`_.
+
 
 Citation
 --------
 
+
 If you use this software or parts thereof, please consider citing the
 following BibTex entry:
 
-::
+.. code::
 
-    @article{atz2021delfta,
-        title={DelFTa: Open-source delta-quantum machine learning},
-        author={Atz, K., and Isert, C., and B\"{o}cker, M., and Jiménez-Luna, J., and Schneider G.},
-        journal={TBD},
-        year={2021},
-    }
+   @article{atz2021delfta,
+      title={DelFTa: Open-source delta-quantum machine learning},
+      author={Atz, K., and Isert, C., and B\"{o}cker, M., and Jiménez-Luna, J., and Schneider G.},
+      journal={TBD},
+      year={2021},
+   }
