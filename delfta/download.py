@@ -18,7 +18,7 @@ DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
     "qmugs_eval": os.path.join(DATA_PATH, "qmugs", "qmugs_eval.h5"),
     "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
-}  # TODO update dataset structure
+}
 
 DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
 
@@ -33,8 +33,6 @@ MODELS = {
     "wbo_direct": "wbo_direct.pt",
 }
 
-
-# TODO Load models trained on 100k. Final sets to be added in the end.
 MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
@@ -123,6 +121,7 @@ def _download_required():
     with tarfile.open(utils_tar) as handle:
         handle.extractall(ROOT_PATH)
 
+
 def _download_training():
     """
     Helper function to download the QMugs training and validation set.
@@ -162,7 +161,6 @@ if __name__ == "__main__":
     if args.training:
         LOGGER.info("Now downloading training data...")
         _download_training()
-
 
     # Test files
     if args.tests:
