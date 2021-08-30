@@ -12,7 +12,7 @@ import torch
 from tqdm import tqdm
 
 from delfta.net_utils import DEVICE
-from delfta.utils import DATA_PATH, LOGGER, MODEL_PATH, ROOT_PATH
+from delfta.utils import DATA_PATH, LOGGER, ROOT_PATH
 
 DATASETS = {
     "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),

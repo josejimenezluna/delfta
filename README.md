@@ -9,11 +9,11 @@
 
 ## Installation
 
-While the Linux/Windows installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. Additionally, only Python 3.7 and 3.8 are currently supported.
+While the Linux/Windows installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. Additionally, only Python 3.7 and 3.8 versions are currently supported.
 
 ### Installation via conda
 
-We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager, and that a fresh environment is created beforehand. 
+We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager, and that a fresh environment is created beforehand. Then fetch the package from our channel:
 
 ```bash
 conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
@@ -22,7 +22,7 @@ conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
 
 ### Installation via Docker
 
-We also provide a CUDA-enabled Dockerfile for easier management. Build the container by
+We also provide a CUDA-enabled Dockerfile for future reproducibility. Build the container by
 
 ```bash
 docker build -t delfta . 
@@ -36,18 +36,10 @@ docker run -it delfta bash
 
 ## First run
 
-DelFTa requires some additional files (_e.g._ trained models) before it can be used. Open a python CLI and execute the download script included in the package:
+DelFTa requires some additional files (_e.g._ trained models) before it can be used. Execute the following in order to fetch those:
 
-```python
-import runpy
-_ = runpy.run_module("delfta.download", run_name="__main__")
-```
-
-Alternatively, call the `_download_required` function in the `download` module:
-
-```python
-from delfta.download import _download_required
-_download_required()
+```bash
+python -c "import runpy; _ = runpy.run_module('delfta.download', run_name='__main__')"
 ```
 
 ## Quick start

@@ -131,9 +131,8 @@ Citation
 
 
 If you use this software or parts thereof, please consider citing the
-following BibTex entry:
+following BibTex entry: ::
 
-.. code::
 
    @article{atz2021delfta,
       title={DelFTa: Open-source delta-quantum machine learning},
