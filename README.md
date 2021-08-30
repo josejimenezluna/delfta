@@ -15,22 +15,10 @@ While the Linux installation fully supports GPU-acceleration via cudatoolkit, on
 
 ### Installation via conda
 
-We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager. First clone the repository to obtain the latest version or download one of the provided stable releases:
+We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager, and that a fresh environment is created beforehand. 
 
 ```bash
-git clone https://github.com/josejimenezluna/delfta
-```
-
-Afterwards, move into the root repo directory and build the provided Makefile via:
-
-```bash
-make
-```
-
-which will create a new conda environment named `delfta` and install all the required dependencies as well as this package according to the requirements of your host operating system. After the installation has completed, you can now activate the environent and use the package via
-
-```bash
-conda activate delfta
+conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
 ```
 
 
@@ -48,6 +36,22 @@ Attach to the provided container with:
 docker run -it delfta bash
 ```
 
+## First run
+
+DelFTa requires some additional files (_e.g._ trained models) before it can be used. Open a python CLI and execute the download script included in the package:
+
+```python
+import runpy
+runpy.run_module("delfta.download", run_name="__main__")
+```
+
+Alternatively, call the `_download_required` function in the `download` module:
+
+```python
+from delfta.download import _download_required
+_download_required()
+```
+
 ## Quick start
 
 ```python
@@ -55,7 +59,7 @@ from openbabel.pybel import readstring
 mol = readstring("smi", "CCO")
 
 from delfta.calculator import DelftaCalculator
-calc = DelftaCalculator(tasks="all")
+calc = DelftaCalculator()
 preds = calc.predict(mol)
 
 print(preds)

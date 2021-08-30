@@ -1,6 +1,6 @@
 package:
   name: "delfta"
-  version: "v0.4"
+  version: "0.5"
 
 source:
   path: ../

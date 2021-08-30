@@ -108,6 +108,43 @@ def get_model_weights(model_path):
     return weights
 
 
+def _download_required():
+    """
+    Helper function to download production trained models as well as utility files.
+    """
+    models_tar = os.path.join(ROOT_PATH, "models.tar.gz")
+    download(MODELS_REMOTE, models_tar)
+
+    with tarfile.open(models_tar) as handle:
+        handle.extractall(ROOT_PATH)
+
+    utils_tar = os.path.join(ROOT_PATH, "utils.tar.gz")
+    download(UTILS_REMOTE, utils_tar)
+
+    with tarfile.open(utils_tar) as handle:
+        handle.extractall(ROOT_PATH)
+
+def _download_training():
+    """
+    Helper function to download the QMugs training and validation set.
+    """
+    download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
+
+    with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
+        handle.extractall(DATA_PATH)
+
+
+def _download_tests():
+    """
+    Helper function to download the tests used upon package build.
+    """
+    tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
+    download(TESTS_REMOTE, tests_tar)
+
+    with tarfile.open(tests_tar) as handle:
+        handle.extractall(DATA_PATH)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
     parser.add_argument(
@@ -118,36 +155,18 @@ if __name__ == "__main__":
 
     os.makedirs(DATA_PATH, exist_ok=True)
 
-    # Trained models
-    LOGGER.info("Now downloading trained models...")
-    models_tar = os.path.join(ROOT_PATH, "models.tar.gz")
-    download(MODELS_REMOTE, models_tar)
-
-    with tarfile.open(models_tar) as handle:
-        handle.extractall(ROOT_PATH)
+    # Trained models and utils
+    LOGGER.info("Now downloading trained models and utils...")
+    _download_required()
 
     # Training data
     if args.training:
         LOGGER.info("Now downloading training data...")
+        _download_training()
 
-        download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
-
-        with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
-            handle.extractall(DATA_PATH)
 
     # Test files
     if args.tests:
         LOGGER.info("Downloading tests...")
-        tests_tar = os.path.join(DATA_PATH, "test_data.tar.gz")
-        download(TESTS_REMOTE, tests_tar)
+        _download_tests()
 
-        with tarfile.open(tests_tar) as handle:
-            handle.extractall(DATA_PATH)
-
-    # utils
-    LOGGER.info("Downloading utils...")
-    utils_tar = os.path.join(ROOT_PATH, "utils.tar.gz")
-    download(UTILS_REMOTE, utils_tar)
-
-    with tarfile.open(utils_tar) as handle:
-        handle.extractall(ROOT_PATH)
