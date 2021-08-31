@@ -84,7 +84,9 @@ Here's a simple example of how to run a calculation for a single molecule create
     preds = calc.predict(mol)
 
     print(preds)
-    # >> {'E_homo': array([-0.35119605], dtype=float32), 'E_lumo': array([0.18145496], dtype=float32), 'E_gap': array([0.53317], dtype=float32), 'dipole': array([1.6470299], dtype=float32), 'E_form': array([-1.5151836], dtype=float32), 'charges': [array([-0.10071784,  0.13719846, -0.35453772,  0.0452125 ,  0.03470724, 0.02626099,  0.0383979 ,  0.01741201,  0.16891802])]}
+    # >> {'E_form': array([-1.2982624], dtype=float32), 'charges': [array([-0.0972612 ,  0.1360395 , -0.35543405,  0.04585792,  0.03582753,
+        0.02528055,  0.03844234,  0.01702337,  0.17144795])], 'wbo': [array([1.07290873, 1.1458627 , 0.95775243, 0.9563791 , 0.95719671,
+       0.94609926, 0.94542666, 1.1332782 ])], 'E_homo': array([-0.34642667], dtype=float32), 'E_lumo': array([0.18278737], dtype=float32), 'E_gap': array([0.52899516], dtype=float32), 'dipole': array([1.9593117], dtype=float32)}
 
 You can also generate Openbabel molecules by *e.g.*, reading from a file to include atom coordinates. See the `Openbabel documentation <https://openbabel.org/docs/dev/UseTheLibrary/Python_Pybel.html>`__ for more information. 
 
