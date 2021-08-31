@@ -14,12 +14,6 @@ from tqdm import tqdm
 from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, LOGGER, ROOT_PATH
 
-DATASETS = {
-    "qmugs_train": os.path.join(DATA_PATH, "qmugs", "qmugs_train.h5"),
-    "qmugs_eval": os.path.join(DATA_PATH, "qmugs", "qmugs_eval.h5"),
-    "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
-}
-
 DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/xIzHH8O3AMSZeAz/download"
 
 MODELS = {
@@ -65,27 +59,6 @@ def download(src, dest):
             progress.update(len(chunk))
 
 
-def get_dataset(name):
-    """Returns a h5py dataset with a specific `name`. These are
-    checked in the `DATASETS` global variable.
-
-    Parameters
-    ----------
-    name : str, optional
-        Name of the h5py dataset to be returned.
-
-    Returns
-    -------
-    h5py.File
-        h5py file handle of the requested dataset
-    """
-    if name not in DATASETS:
-        raise ValueError("Dataset not supported")
-    else:
-        h5 = h5py.File(DATASETS[name], "r")
-        return h5
-
-
 def get_model_weights(model_path):
     """Returns a torch.load handle for a model with a specific `name` from the specified model_path.
 
@@ -124,7 +97,7 @@ def _download_required():
 
 def _download_training():
     """
-    Helper function to download the QMugs training and validation set.
+    Helper function to download the QMugs data set.
     """
     download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
