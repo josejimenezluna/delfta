@@ -12,7 +12,7 @@ Installation
 Pre-requisites
 ~~~~~~~~~~~~~~
 
-While the Linux/Windowns installations fully support GPU-acceleration
+While the Linux/Windows installations fully support GPU-acceleration
 via cudatoolkit, only CPU inference is currently available under Mac OS.
 Additionally, only Python 3.7 and 3.8 are currently supported.
 
@@ -35,10 +35,10 @@ DelFTa requires some additional files (e.g. trained models) before it
 can be used. Open a python CLI and execute the download script included
 in the package:
 
-.. code:: python
+.. code:: bash
+   
+   python -c "import runpy; _ = runpy.run_module('delfta.download', run_name='__main__')"
 
-   import runpy
-   _ = runpy.run_module("delfta.download", run_name="__main__")
 
 Alternatively, call the ``_download_required`` function in the ``download`` module:
 
