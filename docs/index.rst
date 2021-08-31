@@ -52,8 +52,9 @@ Alternatively, call the ``_download_required`` function in the ``download`` modu
 Installation via Docker
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-We also provide a CUDA-enabled Dockerfile for easier management. Build
-the container with
+A CUDA-enabled container can be pulled from `DockerHub <https://hub.docker.com/r/josejimenezluna/delfta>`__. 
+
+We also provide a Dockerfile for manual builds:
 
 .. code:: bash
 
@@ -132,7 +133,6 @@ Citation
 
 If you use this software or parts thereof, please consider citing the
 following BibTex entry: ::
-
 
    @article{atz2021delfta,
       title={DelFTa: Open-source delta-quantum machine learning},

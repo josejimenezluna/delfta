@@ -22,7 +22,9 @@ conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
 
 ### Installation via Docker
 
-We also provide a CUDA-enabled Dockerfile for future reproducibility. Build the container by
+A CUDA-enabled container can be pulled from [DockerHub](https://hub.docker.com/r/josejimenezluna/delfta). 
+
+We also provide a Dockerfile for manual builds:
 
 ```bash
 docker build -t delfta . 
