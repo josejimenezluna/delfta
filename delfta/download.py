@@ -29,7 +29,7 @@ MODELS = {
 
 MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
 
-UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/fNAsmn1JBnNyCUY/download"
+UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/szmhbIK72dkIt5R/download"
 
 TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
 
