@@ -20,7 +20,7 @@ DATASETS = {
     "qmugs_test": os.path.join(DATA_PATH, "qmugs", "qmugs_test.h5"),
 }
 
-DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/BpkfVEgJWjoRRnN/download"
+DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/xIzHH8O3AMSZeAz/download"
 
 MODELS = {
     "multitask_delta": "multitask_delta.pt",

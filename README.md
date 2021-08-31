@@ -68,6 +68,7 @@ In-depth tutorials can be found in the `tutorials` subfolder. These include:
 
 - [delta_vs_direct.ipynb](tutorials/delta_vs_direct.ipynb): This showcases the basics of how to run the calculator, and compares results using direct- and Δ-learning models. 
 - [calculator_options.ipynb](tutorials/calculator_options.ipynb): This dives into the different options you can initialize the calculator class with. 
+- [training.ipynb](tutorials/training.ipynb): A simple example of how networks can be trained. 
 
 
 ## Citation
