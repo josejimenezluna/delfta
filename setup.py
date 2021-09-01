@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
     
 setup(name='delfta',
-    version="0.5",
+    version="0.5.1",
     description='delfta',
     classifiers=[
     'Development Status :: 2 - Pre-Alpha',
