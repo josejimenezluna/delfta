@@ -56,7 +56,7 @@ jobs:
           pip install pytest pytest-cov
         name: set pythonpath
       - run: |
-          echo "PYTHONPATH=/home/runner/work/delfta/delfta" >> $GITHUB_ENV
+          echo "PYTHONPATH=/Users/runner/work/delfta/delfta" >> $GITHUB_ENV
         name: download files
       - run: |
           python delfta/download.py --training --tests
