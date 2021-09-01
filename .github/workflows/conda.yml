@@ -11,36 +11,36 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-      steps:
-        - uses: actions/checkout@v2
-        - uses: conda-incubator/setup-miniconda@v2
-          with:
-            activate-environment: delfta
-            environment-file: environment.yml
-            condarc-file: conda-recipe/.condarc
-            python-version: 3.7
-            auto-activate-base: false
-        - run: |
-            conda info
-            conda install conda-build anaconda-client --yes
-            cd conda-recipe && pkgs=$(conda build . | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: delfta
+          environment-file: environment.yml
+          condarc-file: conda-recipe/.condarc
+          python-version: 3.7
+          auto-activate-base: false
+      - run: |
+          conda info
+          conda install conda-build anaconda-client --yes
+          cd conda-recipe && pkgs=$(conda build . | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
 
   macos:
     runs-on: "macos-latest"
     defaults:
       run:
         shell: bash -l {0}
-      steps:
-        - uses: actions/checkout@v2
-        - uses: conda-incubator/setup-miniconda@v2
-          with:
-            activate-environment: delfta
-            environment-file: environment_osx.yml
-            condarc-file: conda-recipe/.condarc
-            python-version: 3.7
-            auto-activate-base: false
-        - run: |
-            conda info
-            conda install conda-build anaconda-client --yes
-            cd conda-recipe && pkgs=$(conda build . | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
-            
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: delfta
+          environment-file: environment_osx.yml
+          condarc-file: conda-recipe/.condarc
+          python-version: 3.7
+          auto-activate-base: false
+      - run: |
+          conda info
+          conda install conda-build anaconda-client --yes
+          cd conda-recipe && pkgs=$(conda build . | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
+
