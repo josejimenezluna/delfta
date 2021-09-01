@@ -6,6 +6,17 @@ delfta
 
    delfta
 
+Overview 
+------------
+
+The DelFTa application is an easy-to-use, open-source toolbox for 
+predicting quantum-mechanical properties of drug-like molecules. 
+Using either *∆*-learning (with a GFN2-xTB baseline) or direct-learning (without a baseline), the application accurately approximates 
+DFT reference values (*ω*\ B97X-D/def2-SVP). It employs state-of-the-art 
+E(3)-equivariant graph neural networks trained on the QMugs dataset of 
+quantum-mechanical properties, and can predict formation and orbital 
+energies, dipoles, Mulliken partial charges and Wiberg bond orders.
+
 Installation
 ------------
 
