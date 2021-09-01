@@ -1,4 +1,4 @@
-# DelFTa: Open-source Δ-quantum machine learning
+# DelFTa: Open-source Δ-quantum machine learning for medicinal chemistry
 ![](docs/delfta_schema.png)
 
 [![delfta](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml/badge.svg)](https://github.com/josejimenezluna/delfta/actions/workflows/build.yml)
