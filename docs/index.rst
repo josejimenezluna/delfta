@@ -15,7 +15,7 @@ Using either ∆-learning (with a GFN2-xTB baseline) or direct-learning (without
 DFT reference values (*ω*\ B97X-D/def2-SVP). It employs state-of-the-art 
 E(3)-equivariant graph neural networks trained on the QMugs dataset of 
 quantum-mechanical properties, and can predict formation and orbital 
-energies, dipoles, Mulliken partial charges and Wiberg bond orders.
+energies, dipoles, Mulliken partial charges and Wiberg bond orders. See the `paper <https://chemrxiv.org/engage/chemrxiv/article-details/612faa02abeb63218cc5f6f1>`__ for more details.
 
 Installation
 ------------
