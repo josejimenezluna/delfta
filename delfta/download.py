@@ -6,7 +6,6 @@ import argparse
 import os
 import tarfile
 
-import h5py
 import requests
 import torch
 from tqdm import tqdm
