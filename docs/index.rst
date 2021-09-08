@@ -91,7 +91,7 @@ Here's a simple example of how to run a calculation for a single molecule create
 
     # run the prediction
     from delfta.calculator import DelftaCalculator
-    calc = DelftaCalculator(tasks="all")
+    calc = DelftaCalculator()
     preds = calc.predict(mol)
 
     print(preds)
