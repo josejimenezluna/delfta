@@ -4,11 +4,11 @@ import random
 import tempfile
 
 import numpy as np
+import scipy
 from delfta.calculator import DelftaCalculator
-from delfta.utils import MODEL_PATH, TESTS_PATH
+from delfta.utils import MODEL_PATH, TESTS_PATH, get_bond_aidxs
 from openbabel.pybel import Outputfile, readfile
 from sklearn.metrics import mean_absolute_error
-import scipy
 
 DELFTA_TO_DFT_KEYS = {
     "E_form": "DFT:FORMATION_ENERGY",
@@ -151,15 +151,24 @@ def test_calculator():
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+    b_aidxs = [get_bond_aidxs(mol) for mol in mols]
 
     calc_delta = DelftaCalculator(delta=True)
     predictions_delta = calc_delta.predict(mols)
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
+
+    for idx, (pd, b_aidx) in enumerate(zip(predictions_delta["wbo"], b_aidxs)):
+        predictions_delta["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
+    
     predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
 
     calc_direct = DelftaCalculator(delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
+
+    for idx, (pd, b_aidx) in enumerate(zip(predictions_direct["wbo"], b_aidxs)):
+        predictions_direct["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
+
     predictions_direct["wbo"] = np.concatenate(predictions_direct["wbo"])
 
     # extract the ground truth from the QMugs SDFs
@@ -204,6 +213,7 @@ def test_calculator_with_manually_specified_models():
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
+    b_aidxs = [get_bond_aidxs(mol) for mol in mols]
 
     model_names = ["charges", "multitask", "single_energy", "wbo"]
     models_delta = [
@@ -212,14 +222,20 @@ def test_calculator_with_manually_specified_models():
     calc_delta = DelftaCalculator(models=models_delta, delta=True)
     predictions_delta = calc_delta.predict(mols)
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
-    predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
 
+    for idx, (pd, b_aidx) in enumerate(zip(predictions_delta["wbo"], b_aidxs)):
+        predictions_delta["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
+    
+    predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
     models_direct = [
         os.path.join(MODEL_PATH, f"{name}_direct.pt") for name in model_names
     ]
     calc_direct = DelftaCalculator(models=models_direct, delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
+    for idx, (pd, b_aidx) in enumerate(zip(predictions_direct["wbo"], b_aidxs)):
+        predictions_direct["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
+
     predictions_direct["wbo"] = np.concatenate(predictions_direct["wbo"])
 
     # extract the ground truth from the QMugs SDFs
