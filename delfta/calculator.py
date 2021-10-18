@@ -551,7 +551,6 @@ class DelftaCalculator:
                         .to(DEVICE)
                         .eval()
                     )
-                    loader.dataset.wbo = True
                 else:
                     model = (
                         EGNN(
@@ -563,7 +562,6 @@ class DelftaCalculator:
                         .to(DEVICE)
                         .eval()
                     )
-                    loader.dataset.wbo = False
                 weights = get_model_weights(model_path)
                 model.load_state_dict(weights)
                 y_hat, g_ptr, e_ptr = self._get_preds(loader, model)
@@ -602,12 +600,41 @@ class DelftaCalculator:
                             :, MULTITASK_ENDPOINTS[task]
                         ]
 
-                elif mname == "charges" or mname == "wbo":
+                elif mname == "charges":
                     preds_filtered[mname] = preds[model_name]
+                
+                elif mname == "wbo":
+                    preds_filtered[mname] = []
+
+                    for wbo_pred in preds[model_name]:
+                        wbo_dict = {}
+                        shape = int(np.sqrt(wbo_pred.shape[0]))
+                        pred_reshaped = wbo_pred.reshape(shape, shape)
+
+                        indices = np.triu_indices_from(pred_reshaped, k=1)
+
+                        for idx_i, idx_j in zip(indices[0], indices[1]):
+                            wbo_dict[f"{idx_i}-{idx_j}"] = pred_reshaped[idx_i, idx_j]
+
+                        preds_filtered[mname].append(wbo_dict)
+
 
             if self.delta:
                 for prop, delta_arr in preds_filtered.items():
-                    if prop == "charges" or prop == "wbo":
+                    if prop == "wbo":
+                        for idx, (wbo_pred_dict, wbo_xtb_dict) in enumerate(zip(preds_filtered[prop], xtb_props[prop])):
+                            delete_keys = []
+                            for key_idx in wbo_pred_dict.keys():
+                                if key_idx in wbo_xtb_dict:  # check whether bond is present in xtb calc
+                                    wbo_pred_dict[key_idx] +=  wbo_xtb_dict[key_idx]
+                                else:
+                                    delete_keys.append(key_idx)
+
+                            [wbo_pred_dict.pop(k, None) for k in delete_keys]
+
+                            preds_filtered[prop][idx] = wbo_pred_dict
+
+                    elif prop == "charges":
                         preds_filtered[prop] = [
                             d_arr + np.array(xtb_arr)
                             for d_arr, xtb_arr in zip(delta_arr, xtb_props[prop])
