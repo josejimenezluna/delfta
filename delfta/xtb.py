@@ -91,15 +91,13 @@ def get_homo_and_lumo_energies(data):
     return E_homo, E_lumo
 
 
-def get_wbo(wbo_file, mol):
+def get_wbo(wbo_file):
     """Reads WBO output file from xTB and generates a dictionary with the results. 
 
     Parameters
     ----------
     wbo_file : str
         path to xTB wbo output file
-    mol : openbabel.pybel
-        molecule
 
     Returns
     -------
@@ -108,13 +106,9 @@ def get_wbo(wbo_file, mol):
     """
     with open(wbo_file, "r") as f:
         lines = [elem.rstrip("\n") for elem in f.readlines()]
-    tmp = [[int(line[:12]), int(line[12:24]), float(line[24:])] for line in lines]
+    tmp = [[int(line[:12]) - 1, int(line[12:24]) - 1, float(line[24:])] for line in lines]
     wbo_dict = {f"{min((a1, a2))}-{max((a1, a2))}": wbo for a1, a2, wbo in tmp}
-    res = []
-    for bond in [mol.OBMol.GetBondById(i) for i in range(mol.OBMol.NumBonds())]:
-        a1, a2 = sorted((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
-        res.append(wbo_dict[f"{a1}-{a2}"])
-    return res
+    return wbo_dict
 
 
 def run_xtb_calc(mol, opt=False, return_optmol=False):
@@ -173,7 +167,7 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
         props = read_xtb_json(xtb_out, mol)
         if return_optmol:
             opt_mol = next(pybel.readfile("sdf", os.path.join(temp_dir, "xtbopt.sdf")))
-        props.update({"wbo": get_wbo(xtb_wbo, mol)})
+        props.update({"wbo": get_wbo(xtb_wbo)})
         rmtree(temp_dir)
         return (props, opt_mol) if return_optmol else props
 

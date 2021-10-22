@@ -83,6 +83,15 @@ def preds_to_lists(preds):
     return preds_list
 
 
+def get_bond_aidxs(mol):
+    atom_idxs = []
+    for i in range(mol.OBMol.NumBonds()):
+        begin_idx = mol.OBMol.GetBondById(i).GetBeginAtomIdx() - 1
+        end_idx = mol.OBMol.GetBondById(i).GetEndAtomIdx() - 1
+        atom_idxs.append((min(begin_idx, end_idx), max(begin_idx, end_idx)))
+    return atom_idxs
+
+
 # logger
 
 logging.basicConfig(

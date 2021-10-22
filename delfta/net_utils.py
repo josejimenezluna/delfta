@@ -11,6 +11,7 @@ from torch_geometric.data import Data, Dataset
 from torch_geometric.utils import add_self_loops
 from torch_geometric.utils.undirected import to_undirected
 
+
 hparam = namedtuple("hparam", ["n_outputs", "global_prop", "n_kernels", "mlp_dim"])
 
 MULTITASK_ENDPOINTS = {"E_homo": 0, "E_lumo": 1, "E_gap": 2, "dipole": 3}
@@ -43,7 +44,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class DelftaDataset(Dataset):
-    def __init__(self, mols, wbo=False):
+    def __init__(self, mols):
         """Base Dataset class for delfta
 
         Parameters
@@ -52,7 +53,6 @@ class DelftaDataset(Dataset):
             A list of `pybel.Molecule` instances.
         """
         self.mols = mols
-        self.wbo = wbo
 
     def __getitem__(self, idx):
         coords = []
@@ -68,19 +68,10 @@ class DelftaDataset(Dataset):
         coords = torch.FloatTensor(np.array(coords))
 
         # Get edges in from the fully connected graph
-        if self.wbo:
-            edge_index = []
-            for bond in [mol.OBMol.GetBondById(i) for i in range(mol.OBMol.NumBonds())]:
-                a1, a2 = sorted((bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()))
-                edge_index.append([a1, a2])
-
-            edge_index = (
-                torch.from_numpy(np.array(edge_index) - 1).t().contiguous()
-            )  ## obabel starts numbering atom idx at 1
-        else:
-            edge_index = np.array(nx.complete_graph(atomids.size(0)).edges())
-            edge_index = to_undirected(torch.from_numpy(edge_index).t().contiguous())
-            edge_index, _ = add_self_loops(edge_index, num_nodes=coords.shape[0])
+        edge_index = np.array(nx.complete_graph(atomids.size(0)).edges())
+        edge_index = torch.from_numpy(edge_index).t().contiguous()
+        edge_index, _ = add_self_loops(edge_index, num_nodes=coords.shape[0])
+        edge_index = to_undirected(edge_index)
 
         # Graph object
         graph_data = Data(

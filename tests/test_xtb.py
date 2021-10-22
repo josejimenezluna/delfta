@@ -2,7 +2,7 @@ import os
 import glob
 
 import numpy as np
-from delfta.utils import TESTS_PATH
+from delfta.utils import TESTS_PATH, get_bond_aidxs
 from delfta.xtb import run_xtb_calc
 from openbabel.pybel import readfile
 from tqdm import tqdm
@@ -43,5 +43,8 @@ def test_xtb_to_qmugs():
         wbo_sdf = [
             float(elem) for elem in mol.data["GFN2:WIBERG_BOND_ORDER"].split("|")
         ]
-        assert np.allclose(props["wbo"], wbo_sdf, atol=1e-3)
+        atom_idxs = get_bond_aidxs(mol) # only covalent bonds currently checked
+
+        wbo_preds = [props["wbo"][f"{aidx[0]}-{aidx[1]}"] for aidx in atom_idxs]
+        assert np.allclose(np.array(wbo_preds), wbo_sdf, atol=1e-3)
 
