@@ -42,6 +42,7 @@ class DelftaCalculator:
         progress=True,
         return_optmols=False,
         models=None,
+        ignore_checks=False
     ) -> None:
         """Main calculator class for predicting DFT observables.
 
@@ -72,6 +73,9 @@ class DelftaCalculator:
             passed models. See delfta.utils.MODELS for naming convention. Need to agree with choice of
             'delta'.
             Normalization values are not modified.
+        ignore_checks: bool, optional
+            Whether to ignore sanity checks (e.g. 3d or hydrogen presence) when
+            processing molecules. Use at your own risk. 
         """
         if (
             tasks is not None and models is not None
@@ -94,6 +98,7 @@ class DelftaCalculator:
         self.verbose = verbose
         self.progress = progress
         self.return_optmols = return_optmols
+        self.ignore_checks = ignore_checks
         self.batch_mode = False
         self.offset_idx = 0
 
@@ -499,7 +504,10 @@ class DelftaCalculator:
             return self.predict([input_])
 
         elif isinstance(input_, list):
-            mols, fatal = self._preprocess(input_)
+            if self.ignore_checks:
+                mols, fatal = input_, []
+            else:
+                mols, fatal = self._preprocess(input_)
 
         elif isinstance(input_, types.GeneratorType):
             if self.return_optmols:
