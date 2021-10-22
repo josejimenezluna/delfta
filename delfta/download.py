@@ -26,7 +26,7 @@ MODELS = {
     "wbo_direct": "wbo_direct.pt",
 }
 
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/sJyP4lpSZJKOTaa/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/cOLZ8ao9e486TU0/download"
 
 UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/szmhbIK72dkIt5R/download"
 
