@@ -23,7 +23,7 @@ from delfta.molchecks import (
 )
 from delfta.net import EGNN, EGNNWBO
 from delfta.net_utils import DEVICE, MODEL_HPARAMS, MULTITASK_ENDPOINTS, DelftaDataset
-from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH
+from delfta.utils import ELEM_TO_ATOMNUM, LOGGER, MODEL_PATH, WBO_CUTOFF
 from delfta.xtb import run_xtb_calc
 
 _ALLTASKS = ["E_form", "E_homo", "E_lumo", "E_gap", "dipole", "charges", "wbo"]
@@ -622,7 +622,12 @@ class DelftaCalculator:
                         indices = np.triu_indices_from(pred_reshaped, k=1)
 
                         for idx_i, idx_j in zip(indices[0], indices[1]):
-                            wbo_dict[f"{idx_i}-{idx_j}"] = pred_reshaped[idx_i, idx_j]
+                            wbo_pred = pred_reshaped[idx_i, idx_j]
+                            if not self.delta:
+                                if wbo_pred > WBO_CUTOFF:
+                                    wbo_dict[f"{idx_i}-{idx_j}"] = wbo_pred
+                            else:
+                                wbo_dict[f"{idx_i}-{idx_j}"] = wbo_pred
 
                         preds_filtered[mname].append(wbo_dict)
 

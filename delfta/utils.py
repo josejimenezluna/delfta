@@ -23,6 +23,8 @@ EV_TO_HARTREE = (
 
 AU_TO_DEBYE = 1 / 0.3934303  # https://en.wikipedia.org/wiki/Debye (04.06.21)
 
+WBO_CUTOFF = 0.05
+
 ELEM_TO_ATOMNUM = {
     "H": 1,
     "C": 6,
