@@ -26,11 +26,11 @@ MODELS = {
     "wbo_direct": "wbo_direct.pt",
 }
 
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/TnjDFmHxyWsi2nz/download"
+MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/3WKZKTZfFFogBXl/download"
 
-UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/szmhbIK72dkIt5R/download"
+UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/AhttHxXEcMHsSlM/download"
 
-TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/Lyn7OOnh9F7NIIc/download"
+TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/hF1apux3YJOre6i/download"
 
 
 def download(src, dest):
@@ -117,9 +117,7 @@ def _download_tests():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="General download script")
-    parser.add_argument(
-        "--training", dest="training", action="store_true", default=False
-    )
+    parser.add_argument("--training", dest="training", action="store_true", default=False)
     parser.add_argument("--tests", dest="tests", action="store_true", default=False)
     args = parser.parse_args()
 
