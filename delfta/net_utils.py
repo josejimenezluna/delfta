@@ -10,21 +10,22 @@ import torch
 from torch_geometric.data import Data, Dataset
 from torch_geometric.utils import add_self_loops
 from torch_geometric.utils.undirected import to_undirected
+from torch_scatter import scatter_mean, scatter_sum
 
 
-hparam = namedtuple("hparam", ["n_outputs", "global_prop", "n_kernels", "mlp_dim"])
+hparam = namedtuple("hparam", ["n_outputs", "global_prop", "n_kernels", "mlp_dim", "scatter_fun"])
 
 MULTITASK_ENDPOINTS = {"E_homo": 0, "E_lumo": 1, "E_gap": 2, "dipole": 3}
 
 MODEL_HPARAMS = {
-    "multitask_delta": hparam(4, True, 5, 256),
-    "single_energy_delta": hparam(1, True, 5, 256),
-    "charges_delta": hparam(1, False, 5, 256),
-    "wbo_delta": hparam(1, False, 5, 256),
-    "multitask_direct": hparam(4, True, 5, 256),
-    "single_energy_direct": hparam(1, True, 5, 256),
-    "charges_direct": hparam(1, False, 5, 256),
-    "wbo_direct": hparam(1, False, 5, 256),
+    "multitask_delta": hparam(4, True, 5, 256, scatter_mean),
+    "single_energy_delta": hparam(1, True, 5, 256, scatter_sum),
+    "charges_delta": hparam(1, False, 5, 256, scatter_mean),
+    "wbo_delta": hparam(1, False, 5, 256, scatter_mean),
+    "multitask_direct": hparam(4, True, 5, 256, scatter_mean),
+    "single_energy_direct": hparam(1, True, 5, 256, scatter_sum),
+    "charges_direct": hparam(1, False, 5, 256, scatter_mean),
+    "wbo_direct": hparam(1, False, 5, 256, scatter_mean),
 }
 
 QMUGS_ATOM_DICT = {

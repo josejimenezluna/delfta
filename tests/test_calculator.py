@@ -21,7 +21,7 @@ DELFTA_TO_DFT_KEYS = {
 }
 
 CUTOFFS = {
-    "E_form": (0.004, 0.025),
+    "E_form": (0.002, 0.002),
     "E_homo": (0.002, 0.002),
     "E_lumo": (0.002, 0.002),
     "E_gap": (0.002, 0.003),
@@ -32,16 +32,12 @@ CUTOFFS = {
 
 
 def test_invalid_mols_list():
-    mol_files = sorted(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
-    )
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
     invalid_mols = [next(readfile("sdf", mol_file)) for mol_file in invalid_mol_files]
     mols = mols + invalid_mols
-    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(
-        invalid_mols
-    )
+    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(invalid_mols)
     tmp = list(zip(mols, expected_nans))
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
@@ -50,23 +46,17 @@ def test_invalid_mols_list():
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
-    assert np.isnan(
-        predictions_delta["E_form"][~np.array(expected_nans)]
-    ).all()  # invalid_mols give NaN
+    assert np.isnan(predictions_delta["E_form"][~np.array(expected_nans)]).all()  # invalid_mols give NaN
 
 
 def test_invalid_mols_generator():
-    mol_files = sorted(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
-    )
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     invalid_mol_files = glob.glob(os.path.join(TESTS_PATH, "mols_invalid", "*.sdf"))
     invalid_mols = [next(readfile("sdf", mol_file)) for mol_file in invalid_mol_files]
     [mol.make2D() for mol in invalid_mols]
     mols = mols + invalid_mols
-    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(
-        invalid_mols
-    )
+    expected_nans = [True] * (len(mols) - len(invalid_mols)) + [False] * len(invalid_mols)
     tmp = list(zip(mols, expected_nans))
     random.shuffle(tmp)
     mols, expected_nans = zip(*tmp)
@@ -79,9 +69,7 @@ def test_invalid_mols_generator():
     assert ~np.isnan(
         predictions_delta["E_form"][np.array(expected_nans)]
     ).all()  # valid molecules from SDF give result
-    assert np.isnan(
-        predictions_delta["E_form"][~np.array(expected_nans)]
-    ).all()  # invalid_mols give NaN
+    assert np.isnan(predictions_delta["E_form"][~np.array(expected_nans)]).all()  # invalid_mols give NaN
 
 
 def test_3d_and_h_mols_list():
@@ -91,9 +79,7 @@ def test_3d_and_h_mols_list():
         "yes_3d_but_no_h.sdf",
         "yes_3d_yes_h.sdf",
     ]
-    mol_files = [
-        os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames
-    ]
+    mol_files = [os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames]
     assert len(mol_files) == 4
 
     # where do we expect a NaN answer because the calculator can't run with those options
@@ -119,9 +105,7 @@ def test_3d_and_h_mols_generator():
         "yes_3d_but_no_h.sdf",
         "yes_3d_yes_h.sdf",
     ]
-    mol_files = [
-        os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames
-    ]
+    mol_files = [os.path.join(TESTS_PATH, "mols_3d_h", filename) for filename in filenames]
     assert len(mol_files) == 4
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     temp_dir = tempfile.TemporaryDirectory()
@@ -145,9 +129,7 @@ def test_3d_and_h_mols_generator():
 
 
 def test_calculator():
-    mol_files = sorted(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
-    )
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
@@ -159,7 +141,7 @@ def test_calculator():
 
     for idx, (pd, b_aidx) in enumerate(zip(predictions_delta["wbo"], b_aidxs)):
         predictions_delta["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
-    
+
     predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
 
     calc_direct = DelftaCalculator(delta=False)
@@ -184,16 +166,9 @@ def test_calculator():
     dft_values = {}
     for dft_key in dft_keys:
         if dft_key == "DFT:DIPOLE":
-            dft_values[dft_key] = [
-                float(mol.data[dft_key].split("|")[-1]) for mol in mols
-            ]
-        elif (
-            dft_key == "DFT:MULLIKEN_CHARGES"
-            or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER"
-        ):
-            dft_values[dft_key] = [
-                float(elem) for mol in mols for elem in mol.data[dft_key].split("|")
-            ]
+            dft_values[dft_key] = [float(mol.data[dft_key].split("|")[-1]) for mol in mols]
+        elif dft_key == "DFT:MULLIKEN_CHARGES" or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER":
+            dft_values[dft_key] = [float(elem) for mol in mols for elem in mol.data[dft_key].split("|")]
         else:
             dft_values[dft_key] = [float(mol.data[dft_key]) for mol in mols]
 
@@ -207,29 +182,23 @@ def test_calculator():
 
 
 def test_calculator_with_manually_specified_models():
-    mol_files = sorted(
-        glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf"))
-    )
+    mol_files = sorted(glob.glob(os.path.join(TESTS_PATH, "mols_working", "CHEMBL*.sdf")))
     print(f"Located {len(mol_files)} sdf files for testing!")
     assert len(mol_files) == 100
     mols = [next(readfile("sdf", mol_file)) for mol_file in mol_files]
     b_aidxs = [get_bond_aidxs(mol) for mol in mols]
 
     model_names = ["charges", "multitask", "single_energy", "wbo"]
-    models_delta = [
-        os.path.join(MODEL_PATH, f"{name}_delta.pt") for name in model_names
-    ]
+    models_delta = [os.path.join(MODEL_PATH, f"{name}_delta.pt") for name in model_names]
     calc_delta = DelftaCalculator(models=models_delta, delta=True)
     predictions_delta = calc_delta.predict(mols)
     predictions_delta["charges"] = np.concatenate(predictions_delta["charges"])
 
     for idx, (pd, b_aidx) in enumerate(zip(predictions_delta["wbo"], b_aidxs)):
         predictions_delta["wbo"][idx] = np.array([pd[f"{aidx[0]}-{aidx[1]}"] for aidx in b_aidx])
-    
+
     predictions_delta["wbo"] = np.concatenate(predictions_delta["wbo"])
-    models_direct = [
-        os.path.join(MODEL_PATH, f"{name}_direct.pt") for name in model_names
-    ]
+    models_direct = [os.path.join(MODEL_PATH, f"{name}_direct.pt") for name in model_names]
     calc_direct = DelftaCalculator(models=models_direct, delta=False)
     predictions_direct = calc_direct.predict(mols)
     predictions_direct["charges"] = np.concatenate(predictions_direct["charges"])
@@ -251,16 +220,9 @@ def test_calculator_with_manually_specified_models():
     dft_values = {}
     for dft_key in dft_keys:
         if dft_key == "DFT:DIPOLE":
-            dft_values[dft_key] = [
-                float(mol.data[dft_key].split("|")[-1]) for mol in mols
-            ]
-        elif (
-            dft_key == "DFT:MULLIKEN_CHARGES"
-            or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER"
-        ):
-            dft_values[dft_key] = [
-                float(elem) for mol in mols for elem in mol.data[dft_key].split("|")
-            ]
+            dft_values[dft_key] = [float(mol.data[dft_key].split("|")[-1]) for mol in mols]
+        elif dft_key == "DFT:MULLIKEN_CHARGES" or dft_key == "DFT:WIBERG_LOWDIN_BOND_ORDER":
+            dft_values[dft_key] = [float(elem) for mol in mols for elem in mol.data[dft_key].split("|")]
         else:
             dft_values[dft_key] = [float(mol.data[dft_key]) for mol in mols]
 
@@ -274,17 +236,13 @@ def test_calculator_with_manually_specified_models():
 
 
 def test_xtb_opt():
-    benzene_distorted = os.path.join(
-        TESTS_PATH, "mols_xtb_opt", "benzene_distorted.xyz"
-    )
+    benzene_distorted = os.path.join(TESTS_PATH, "mols_xtb_opt", "benzene_distorted.xyz")
     mol = next(readfile("xyz", benzene_distorted))
     old_coords = np.array([atom.coords for atom in mol.atoms])
 
     deltas = [True, False]
     for delta in deltas:
-        calc_delta = DelftaCalculator(
-            tasks=["E_form"], delta=delta, xtbopt=True, return_optmols=True
-        )
+        calc_delta = DelftaCalculator(tasks=["E_form"], delta=delta, xtbopt=True, return_optmols=True)
         _, opt_mols = calc_delta.predict(mol)
         new_coords = np.array([atom.coords for atom in opt_mols[0].atoms])
         A = np.c_[new_coords[:, 0], new_coords[:, 1], np.ones(new_coords.shape[0])]
@@ -292,7 +250,5 @@ def test_xtb_opt():
         Z = C[0] * new_coords[:, 0] + C[1] * new_coords[:, 1] + C[2]
         Z - new_coords[:, 2]
         assert ~np.all(np.equal(old_coords, new_coords))  # coordinates were modified
-        assert np.all(
-            np.isclose(0, Z - new_coords[:, 2], atol=1e-2)
-        )  # molecule is planar
+        assert np.all(np.isclose(0, Z - new_coords[:, 2], atol=1e-2))  # molecule is planar
 

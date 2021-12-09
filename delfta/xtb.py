@@ -26,9 +26,8 @@ XTB_ENV = {
     "OMP_STACKSIZE": "1G",
     "OMP_NUM_THREADS": "1",
     "OMP_MAX_ACTIVE_LEVELS": "1",
-    "MKL_NUM_THREADS": "1"
+    "MKL_NUM_THREADS": "1",
 }
-
 
 
 def read_xtb_json(json_file, mol):
@@ -106,7 +105,9 @@ def get_wbo(wbo_file):
     """
     with open(wbo_file, "r") as f:
         lines = [elem.rstrip("\n") for elem in f.readlines()]
-    tmp = [[int(line[:12]) - 1, int(line[12:24]) - 1, float(line[24:])] for line in lines]
+    tmp = [
+        [int(line[:12]) - 1, int(line[12:24]) - 1, float(line[24:])] for line in lines
+    ]
     wbo_dict = {f"{min((a1, a2))}-{max((a1, a2))}": wbo for a1, a2, wbo in tmp}
     return wbo_dict
 
@@ -153,11 +154,20 @@ def run_xtb_calc(mol, opt=False, return_optmol=False):
 
     with open(logfile, "w") as f:
         xtb_run = subprocess.run(
-            [XTB_BINARY, sdf_path, xtb_command, "--input", XTB_INPUT_FILE, "--wbo"],
+            [
+                XTB_BINARY,
+                sdf_path,
+                xtb_command,
+                "--input",
+                XTB_INPUT_FILE,
+                "--chrg",
+                str(mol.charge),
+                "--wbo",
+            ],
             stdout=f,
             stderr=subprocess.STDOUT,
             cwd=temp_dir,
-            env=XTB_ENV
+            env=XTB_ENV,
         )
     if xtb_run.returncode != 0:
         error_out = os.path.join(temp_dir, "xtb.log")

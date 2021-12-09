@@ -566,6 +566,7 @@ class DelftaCalculator:
                             global_prop=model_param.global_prop,
                             n_kernels=model_param.n_kernels,
                             mlp_dim=model_param.mlp_dim,
+                            scatter_fun=model_param.scatter_fun
                         )
                         .to(DEVICE)
                         .eval()

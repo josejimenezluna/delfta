@@ -24,6 +24,7 @@ class EGNN(nn.Module):
         fourier_features=32,
         aggr="mean",
         global_prop=True,
+        scatter_fun=scatter_mean
     ):
         """Main Equivariant Graph Neural Network class.
 
@@ -49,6 +50,8 @@ class EGNN(nn.Module):
             Aggregation strategy for global tasks, by default "mean"
         global_prop : bool, optional
             Whether to predict a molecule-level property or an atomic one, by default True
+        scatter_fun : function, optional
+            Which torch.scatter function to use in order to aggregate node-level features
         """
         super(EGNN, self).__init__()
 
@@ -63,6 +66,7 @@ class EGNN(nn.Module):
         self.fourier_features = fourier_features
         self.aggr = aggr
         self.global_prop = global_prop
+        self.scatter_fun = scatter_fun
 
         # Embedding
         self.embedding = nn.Embedding(
@@ -133,7 +137,7 @@ class EGNN(nn.Module):
         if self.global_prop:
             # Pooling
             features = F.silu(features)
-            features = scatter_mean(features, g_batch.batch, dim=0)
+            features = self.scatter_fun(features, g_batch.batch, dim=0)
 
             # MLP 2
             for mlp in self.fnn2[:-1]:

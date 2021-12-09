@@ -1,16 +1,15 @@
 from setuptools import setup, find_packages
-    
-setup(name='delfta',
-    version="0.6.0",
-    description='delfta',
-    classifiers=[
-    'Development Status :: 2 - Pre-Alpha',
-    'Topic :: Scientific/Engineering :: Mathematics'
-    ],
-    keywords = [],
-    url='https://github.com/josejimenezluna/delfta',
-    author='Jose Jimenez, Clemens Isert, Kenneth Atz, Markus Bocker, Gisbert Schneider',
-    author_email='hawk31@gmail.com',
-    license='AGPLv3',
+
+setup(
+    name="delfta",
+    version="0.8.0",
+    description="delfta",
+    classifiers=["Development Status :: 2 - Pre-Alpha", "Topic :: Scientific/Engineering :: Mathematics"],
+    keywords=[],
+    url="https://github.com/josejimenezluna/delfta",
+    author="Jose Jimenez, Clemens Isert, Kenneth Atz, Markus Bocker, Gisbert Schneider",
+    author_email="hawk31@gmail.com",
+    license="AGPLv3",
     packages=find_packages(),
-    zip_safe=False)
+    zip_safe=False,
+)
