@@ -13,7 +13,9 @@ from tqdm import tqdm
 from delfta.net_utils import DEVICE
 from delfta.utils import DATA_PATH, LOGGER, ROOT_PATH
 
-DATASET_REMOTE = "https://polybox.ethz.ch/index.php/s/xIzHH8O3AMSZeAz/download"
+DATASET_REMOTE = (
+    "https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/520329/qmugs.tar.gz?sequence=1&isAllowed=y"
+)
 
 MODELS = {
     "multitask_delta": "multitask_delta.pt",
@@ -26,11 +28,15 @@ MODELS = {
     "wbo_direct": "wbo_direct.pt",
 }
 
-MODELS_REMOTE = "https://polybox.ethz.ch/index.php/s/FqYtDgi0KkJgrrr/download"
+MODELS_REMOTE = (
+    "https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/520281/models.tar.gz?sequence=6&isAllowed=y"
+)
 
-UTILS_REMOTE = "https://polybox.ethz.ch/index.php/s/AhttHxXEcMHsSlM/download"
+UTILS_REMOTE = (
+    "https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/520281/utils.tar.gz?sequence=8&isAllowed=y"
+)
 
-TESTS_REMOTE = "https://polybox.ethz.ch/index.php/s/hF1apux3YJOre6i/download"
+TESTS_REMOTE = "https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/520329/test_data.tar.gz?sequence=2&isAllowed=y"
 
 
 def download(src, dest):
