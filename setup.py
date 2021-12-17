@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="delfta",
-    version="0.8.0",
+    version="1.0.0",
     description="delfta",
     classifiers=["Development Status :: 2 - Pre-Alpha", "Topic :: Scientific/Engineering :: Mathematics"],
     keywords=[],
