@@ -79,12 +79,14 @@ In-depth tutorials can be found in the `tutorials` subfolder. These include:
 If you use this software or parts thereof, please consider citing the following BibTex entry:
 
 ```
- @article{atz2021delfta, 
-  title={Open-source Δ-quantum machine learning for medicinal chemistry}, 
-  DOI={10.33774/chemrxiv-2021-fz6v7}, 
-  journal={ChemRxiv}, 
-  publisher={Cambridge Open Engage}, 
-  author={Atz, Kenneth and Isert, Clemens and Böcker, Markus N. A. and Jiménez-Luna, José and Schneider, Gisbert}, 
-  year={2021}
-} 
+@article{atz2022delta,
+  title={$\Delta$-Quantum machine-learning for medicinal chemistry},
+  author={Atz, Kenneth and Isert, Clemens and B{\"o}cker, Markus NA and Jim{\'e}nez-Luna, Jos{\'e} and Schneider, Gisbert},
+  journal={Physical Chemistry Chemical Physics},
+  volume={24},
+  number={18},
+  pages={10775--10783},
+  year={2022},
+  publisher={Royal Society of Chemistry}
+}
 ```
