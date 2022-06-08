@@ -8,7 +8,7 @@
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)
 
 ## Overview 
-The DelFTa application is an easy-to-use, open-source toolbox for predicting quantum-mechanical properties of drug-like molecules. Using either ∆-learning (with a GFN2-xTB baseline) or direct-learning (without a baseline), the application accurately approximates DFT reference values (*ω*B97X-D/def2-SVP). It employs 3D message-passing neural networks trained on the QMugs dataset of quantum-mechanical properties, and can predict formation and orbital energies, dipoles, Mulliken partial charges and Wiberg bond orders. See the [paper](https://chemrxiv.org/engage/chemrxiv/article-details/612faa02abeb63218cc5f6f1) for more details (version 1.0.0 used in this work).
+The DelFTa application is an easy-to-use, open-source toolbox for predicting quantum-mechanical properties of drug-like molecules. Using either ∆-learning (with a GFN2-xTB baseline) or direct-learning (without a baseline), the application accurately approximates DFT reference values (*ω*B97X-D/def2-SVP). It employs 3D message-passing neural networks trained on the QMugs dataset of quantum-mechanical properties, and can predict formation and orbital energies, dipoles, Mulliken partial charges and Wiberg bond orders. See the [paper](https://pubs.rsc.org/en/content/articlehtml/2022/cp/d2cp00834c) for more details (version 1.0.0 used in this work).
 
 ## Installation
 
