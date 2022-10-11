@@ -20,7 +20,7 @@ jobs:
         with:
           activate-environment: delfta
           environment-file: environment.yml
-          python-version: 3.7
+          python-version: 3.8
           auto-activate-base: false
       - run: |
           conda info
@@ -49,7 +49,7 @@ jobs:
         with:
           activate-environment: delfta
           environment-file: environment_osx.yml
-          python-version: 3.7
+          python-version: 3.8
           auto-activate-base: false
       - run: |
           conda info

@@ -18,7 +18,7 @@ jobs:
           activate-environment: delfta
           environment-file: environment.yml
           condarc-file: conda-recipe/.condarc
-          python-version: 3.7
+          python-version: 3.8
           auto-activate-base: false
       - run: |
           conda info
@@ -37,7 +37,7 @@ jobs:
           activate-environment: delfta
           environment-file: environment_osx.yml
           condarc-file: conda-recipe/.condarc
-          python-version: 3.7
+          python-version: 3.8
           auto-activate-base: false
       - run: |
           conda info
