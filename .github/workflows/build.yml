@@ -17,7 +17,7 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    name: py ${{ matrix.python-version }} tests
+    name: Linux py ${{ matrix.python-version }} tests
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
@@ -50,7 +50,7 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    name: py ${{ matrix.python-version }} tests
+    name: OS X py ${{ matrix.python-version }} tests
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
