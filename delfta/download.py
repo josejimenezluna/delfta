@@ -91,13 +91,51 @@ def _download_required():
     download(MODELS_REMOTE, models_tar)
 
     with tarfile.open(models_tar) as handle:
-        handle.extractall(ROOT_PATH)
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(handle, ROOT_PATH)
 
     utils_tar = os.path.join(ROOT_PATH, "utils.tar.gz")
     download(UTILS_REMOTE, utils_tar)
 
     with tarfile.open(utils_tar) as handle:
-        handle.extractall(ROOT_PATH)
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(handle, ROOT_PATH)
 
 
 def _download_training():
@@ -107,7 +145,26 @@ def _download_training():
     download(DATASET_REMOTE, os.path.join(DATA_PATH, "qmugs.tar.gz"))
 
     with tarfile.open(os.path.join(DATA_PATH, "qmugs.tar.gz")) as handle:
-        handle.extractall(DATA_PATH)
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(handle, DATA_PATH)
 
 
 def _download_tests():
@@ -118,7 +175,26 @@ def _download_tests():
     download(TESTS_REMOTE, tests_tar)
 
     with tarfile.open(tests_tar) as handle:
-        handle.extractall(DATA_PATH)
+        def is_within_directory(directory, target):
+            
+            abs_directory = os.path.abspath(directory)
+            abs_target = os.path.abspath(target)
+        
+            prefix = os.path.commonprefix([abs_directory, abs_target])
+            
+            return prefix == abs_directory
+        
+        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        
+            for member in tar.getmembers():
+                member_path = os.path.join(path, member.name)
+                if not is_within_directory(path, member_path):
+                    raise Exception("Attempted Path Traversal in Tar File")
+        
+            tar.extractall(path, members, numeric_owner=numeric_owner) 
+            
+        
+        safe_extract(handle, DATA_PATH)
 
 
 if __name__ == "__main__":
