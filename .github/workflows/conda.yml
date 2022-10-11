@@ -8,9 +8,6 @@ on:
 jobs:
   linux:
     runs-on: "ubuntu-latest"
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9']
     defaults:
       run:
         shell: bash -l {0}
@@ -21,7 +18,7 @@ jobs:
           activate-environment: delfta
           environment-file: environment.yml
           condarc-file: conda-recipe/.condarc
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.8
           auto-activate-base: false
       - run: |
           conda info
