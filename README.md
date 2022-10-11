@@ -12,7 +12,7 @@ The DelFTa application is an easy-to-use, open-source toolbox for predicting qua
 
 ## Installation
 
-While the Linux (and Windows, through WSL) installations fully support GPU-acceleration via cudatoolkit, only CPU inference is currently available under Mac OS. We currently support Python 3.7 and 3.8 builds.
+We currently only support Python 3.8 and 3.9 Linux builds.
 
 ### Installation via conda
 

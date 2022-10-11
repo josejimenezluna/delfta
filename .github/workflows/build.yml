@@ -11,16 +11,20 @@ on:
 jobs:
   linux:
     runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9']
     defaults:
       run:
         shell: bash -l {0}
+    name: Linux py ${{ matrix.python-version }} tests
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: delfta
           environment-file: environment.yml
-          python-version: 3.7
+          python-version: ${{ matrix.python-version }}
           auto-activate-base: false
       - run: |
           conda info
@@ -37,29 +41,3 @@ jobs:
       - run: |
           pytest --cov=delfta --cov-config=.coveragerc --cov-report=xml tests/
           ./codecov -t ${{ secrets.CODECOV_TOKEN }}
-
-  macos:
-    runs-on: "macos-latest"
-    defaults:
-      run:
-        shell: bash -l {0}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: delfta
-          environment-file: environment_osx.yml
-          python-version: 3.7
-          auto-activate-base: false
-      - run: |
-          conda info
-          pip install pytest
-        name: set pythonpath
-      - run: |
-          echo "PYTHONPATH=/Users/runner/work/delfta/delfta" >> $GITHUB_ENV
-        name: download files
-      - run: |
-          python delfta/download.py --tests
-        name: test
-      - run: |
-          pytest
