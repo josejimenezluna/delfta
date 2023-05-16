@@ -7,6 +7,7 @@ dependencies:
   - openbabel=3.1.1
   - xtb=6.4.1
   - pytorch-geometric=1.7.2
+  - pip=23.1.2
   - pip:
     - numpy==1.19.2
     - torch==1.8.0
