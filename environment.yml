@@ -1,26 +1,24 @@
 name: delfta
 channels:
-  - pytorch
-  - defaults
-  - rusty1s
   - conda-forge
+
 dependencies:
-  - joblib=1.0.1
-  - matplotlib=3.3.2
-  - numpy=1.19.2
-  - pandas=1.1.3
-  - pip=20.2.4
-  - scikit-learn=0.23.2
-  - scipy=1.5.2
-  - tqdm=4.51.0
-  - pytorch=1.8.0
-  - pytorch-geometric=1.7.2
-  - cudatoolkit=10.2
-  - openbabel=3.1.1
-  - h5py=3.2.1
-  - xtb=6.3.1
-  - einops=0.3.0
+  - python
+  - pytorch
+  - pytorch_geometric
+  - torch-scatter
+  - openbabel
+  - xtb=6.3.1 # pin for delfta compatibility
+  - h5py
+  - numpy
+  - pandas
+  - scikit-learn
+  - scipy
+  - matplotlib
+  - tqdm
+  - joblib
+  - einops
+  - pip
   - pip:
-    - ase==3.21.1
-    - einops==0.3.0
-    - networkx==2.5
+      - ase
+      - networkx
