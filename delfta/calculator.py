@@ -8,9 +8,10 @@ import pickle
 import types
 
 import numpy as np
-import openbabel
+from openbabel import openbabel
+from openbabel import pybel
 import torch
-from torch_geometric.data.dataloader import DataLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 
 from delfta.download import MODELS, get_model_weights
@@ -500,7 +501,7 @@ class DelftaCalculator:
         fatal_xtb, fatal = [], []
         xtb_all_fail = False
 
-        if isinstance(input_, openbabel.pybel.Molecule):
+        if isinstance(input_, pybel.Molecule):
             return self.predict([input_])
 
         elif isinstance(input_, list):

@@ -284,11 +284,11 @@ class EGNN_sparse(MessagePassing):
 
     def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
         # get input tensors
-        size = self.__check_input__(edge_index, size)
-        coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
-        msg_kwargs = self.inspector.distribute("message", coll_dict)
-        aggr_kwargs = self.inspector.distribute("aggregate", coll_dict)
-        update_kwargs = self.inspector.distribute("update", coll_dict)
+        size = self._check_input(edge_index, size)
+        coll_dict = self._collect(self._user_args, edge_index, size, kwargs)
+        msg_kwargs = self.inspector.collect_param_data("message", coll_dict)
+        aggr_kwargs = self.inspector.collect_param_data("aggregate", coll_dict)
+        update_kwargs = self.inspector.collect_param_data("update", coll_dict)
 
         # get messages
         m_ij = self.message(**msg_kwargs)
@@ -531,9 +531,9 @@ class EGNN_sparse_edge(MessagePassing):
     def propagate(self, edge_index: Adj, size: Size = None, **kwargs):
 
         # get input tensors
-        size = self.__check_input__(edge_index, size)
-        coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
-        msg_kwargs = self.inspector.distribute("message", coll_dict)
+        size = self._check_input(edge_index, size)
+        coll_dict = self._collect(self._user_args, edge_index, size, kwargs)
+        msg_kwargs = self.inspector.collect_param_data("message", coll_dict)
 
         # get messages
         m_ij = self.message(**msg_kwargs)
@@ -547,10 +547,10 @@ class EGNN_sparse_edge(MessagePassing):
         edge_index = torch.cat([edge_index, edge_mirrored], dim=1)
 
         # update dict with new edge ids
-        size = self.__check_input__(edge_index, size)
-        coll_dict = self.__collect__(self.__user_args__, edge_index, size, kwargs)
-        aggr_kwargs = self.inspector.distribute("aggregate", coll_dict)
-        update_kwargs = self.inspector.distribute("update", coll_dict)
+        size = self._check_input(edge_index, size)
+        coll_dict = self._collect(self._user_args, edge_index, size, kwargs)
+        aggr_kwargs = self.inspector.collect_param_data("aggregate", coll_dict)
+        update_kwargs = self.inspector.collect_param_data("update", coll_dict)
 
         # aggregate messages
         m_i = self.aggregate(m_ij_mirrored, **aggr_kwargs)
