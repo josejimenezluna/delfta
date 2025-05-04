@@ -2,9 +2,13 @@ FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
 
 WORKDIR /usr/src/app
 
-# Install micromamba
-RUN apt-get update && apt-get install -y curl bzip2 git && \
-    curl -L https://micromamba.snakepit.net/api/micromamba/linux-64/latest | tar -xj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+# Install dependencies and micromamba
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl bzip2 git ca-certificates && \
+    curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | \ 
+    tar -xj -C /usr/local/bin --strip-components=1 bin/micromamba && \
+    # Clean up apt caches
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Use only conda-forge
@@ -24,7 +28,7 @@ RUN echo 'eval "$(/usr/local/bin/micromamba shell hook --shell bash)"' >> /root/
 ENV PATH="/opt/conda/envs/delfta/bin:$PATH"
 
 # Clone the delfta repository and install it
-RUN git clone -b pytorch-update https://github.com/janash/delfta.git
+RUN git clone --depth 1 https://github.com/josejimenezluna/delfta.git
 
 RUN cd delfta && \
     pip install -e . && \
@@ -34,5 +38,4 @@ RUN cd delfta && \
 RUN cd delfta && \
     micromamba run -n delfta python -c "import runpy; _ = runpy.run_module('delfta.download', run_name='__main__')"
 
-# Remove ENTRYPOINT to allow direct shell access with environment activated
 CMD ["/bin/bash", "-l"]

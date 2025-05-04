@@ -19,6 +19,7 @@ dependencies:
   - joblib
   - einops
   - pip
+  - pytest 
   - pip:
       - ase
       - networkx
