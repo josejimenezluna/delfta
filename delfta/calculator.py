@@ -520,7 +520,7 @@ class DelftaCalculator:
 
         elif isinstance(input_, str):
             ext = os.path.splitext(input_)[-1].lstrip(".")
-            return self.predict(openbabel.pybel.readfile(ext, input_))
+            return self.predict(pybel.readfile(ext, input_))
 
         else:
             raise ValueError(
