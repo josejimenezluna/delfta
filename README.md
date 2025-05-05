@@ -19,7 +19,7 @@ We currently only support Python 3.11 and 3.12 Linux builds.
 We recommend and support installation via the [conda](https://docs.conda.io/en/latest/miniconda.html) package manager, and that a fresh environment is created beforehand. Then fetch the package from our channel:
 
 ```bash
-conda install delfta -c delfta -c pytorch -c rusty1s -c conda-forge
+conda install delfta -c delfta -c conda-forge
 ```
 
 

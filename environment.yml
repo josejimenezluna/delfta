@@ -1,12 +1,10 @@
 name: delfta
 channels:
+  - defaults
   - conda-forge
 
 dependencies:
   - python
-  - pytorch
-  - pytorch_geometric
-  - torch-scatter
   - openbabel
   - xtb=6.3.1 # pin for delfta compatibility
   - h5py
@@ -23,3 +21,6 @@ dependencies:
   - pip:
       - ase
       - networkx
+      - torch # install wheels for your required architecture
+      - torch_geometric
+      - torch-scatter

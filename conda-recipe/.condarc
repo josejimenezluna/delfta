@@ -1,6 +1,5 @@
 channels:
-  - defaults
-  - pytorch
-  - rusty1s
   - conda-forge
+  - defaults
+  - rusty1s
 channel_priority: flexible
