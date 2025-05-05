@@ -1,4 +1,4 @@
-name: delfta
+name: delfta5
 channels:
   - defaults
   - conda-forge
@@ -17,10 +17,9 @@ dependencies:
   - joblib
   - einops
   - pip
-  - pytest 
+  - pytest
   - pip:
       - ase
       - networkx
-      - torch # install wheels for your required architecture
+      - torch --index-url https://download.pytorch.org/whl/cpu # install wheels for your required architecture
       - torch_geometric
-      - torch-scatter
