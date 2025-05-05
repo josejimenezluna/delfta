@@ -28,6 +28,7 @@ jobs:
           auto-activate-base: false
       - run: |
           conda info
+          pip install torch-scatter
           pip install pytest pytest-cov
         name: set pythonpath
       - run: |

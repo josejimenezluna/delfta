@@ -18,9 +18,9 @@ jobs:
           activate-environment: delfta
           environment-file: environment.yml
           condarc-file: conda-recipe/.condarc
-          python-version: 3.8
+          python-version: 3.11
           auto-activate-base: false
       - run: |
           conda info
           conda install conda-build anaconda-client --yes
-          cd conda-recipe && pkgs=$(conda build . | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
+          cd conda-recipe && pkgs=$(conda build . -c conda-forge | grep 'TEST START' | awk '{print $3}') && for pkg in $pkgs;do anaconda -t ${{ secrets.CONDA_TOKEN }} upload -u delfta $pkg; done
