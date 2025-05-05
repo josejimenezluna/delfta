@@ -12,7 +12,7 @@ The DelFTa application is an easy-to-use, open-source toolbox for predicting qua
 
 ## Installation
 
-We currently only support Python 3.8 and 3.9 Linux builds.
+We currently only support Python 3.11 and 3.12 Linux builds.
 
 ### Installation via conda
 
