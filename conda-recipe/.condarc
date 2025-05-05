@@ -1,5 +1,4 @@
 channels:
   - conda-forge
   - defaults
-  - rusty1s
 channel_priority: flexible
